@@ -1072,6 +1072,10 @@ td.name-cell small { display: block; font-weight: 400; color: var(--text2); font
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
         <span id="nav-mitre-coverage-db">MITRE Coverage DB</span>
       </div>
+      <div class="nav-item" data-view="rag-settings" onclick="navigate('rag-settings')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h10"/><circle cx="18" cy="17" r="2"/></svg>
+        <span id="nav-rag-settings">RAG Settings</span>
+      </div>
       <div class="nav-item" data-view="paloalto-rag" onclick="navigate('paloalto-rag')">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/><circle cx="12" cy="10" r="3"/><path d="M9 10h.01M15 10h.01"/></svg>
         <span id="nav-paloalto-rag">Palo Alto RAG</span>
@@ -1330,6 +1334,14 @@ const I18N = {
     mitreChatLoadConv: 'Cargar conversación',
     mitreChatSaved: 'Guardado',
     mitreCvgDbNav: 'MITRE Coverage DB',
+    ragSettingsNav: 'RAG Settings',
+    ragSettingsTitle: 'RAG Settings',
+    ragSettingsSubtitle: 'Gestion centralizada de conectores RAG por vendor. Palo Alto esta activo y puedes ampliar aqui nuevos RAGs de fabricantes.',
+    ragSettingsAvailable: 'Disponible',
+    ragSettingsPlanned: 'Planeado',
+    ragSettingsOpen: 'Abrir',
+    ragSettingsComingSoon: 'Proximamente',
+    ragSettingsIntro: 'RAGs por vendor',
     mitreCvgDbTitle: 'MITRE ATT&CK — Base de resultados',
     mitreCvgDbSubtitle: 'Todos los análisis de cobertura guardados. Cada nuevo análisis del mismo vendor acumula resultados.',
     mitreCvgDbVendors: 'Vendors analizados',
@@ -1565,6 +1577,14 @@ const I18N = {
     mitreChatLoadConv: 'Load conversation',
     mitreChatSaved: 'Saved',
     mitreCvgDbNav: 'MITRE Coverage DB',
+    ragSettingsNav: 'RAG Settings',
+    ragSettingsTitle: 'RAG Settings',
+    ragSettingsSubtitle: 'Centralized management for vendor RAG connectors. Palo Alto is active and future vendor RAGs can be added here.',
+    ragSettingsAvailable: 'Available',
+    ragSettingsPlanned: 'Planned',
+    ragSettingsOpen: 'Open',
+    ragSettingsComingSoon: 'Coming soon',
+    ragSettingsIntro: 'Vendor RAGs',
     mitreCvgDbTitle: 'MITRE ATT&CK — Coverage Database',
     mitreCvgDbSubtitle: 'All saved coverage analyses. Each new analysis of the same vendor accumulates results.',
     mitreCvgDbVendors: 'Analyzed vendors',
@@ -1648,6 +1668,7 @@ function applyStaticTranslations() {
   set('nav-analyze-vendor', t('analyzeVendor'));
   set('nav-mitre-chat', t('mitreChatNav'));
   set('nav-mitre-coverage-db', t('mitreCvgDbNav'));
+  set('nav-rag-settings', t('ragSettingsNav'));
   set('nav-paloalto-rag', t('paRagNav'));
   set('nav-manage-data', t('manageData'));
 
@@ -1925,8 +1946,76 @@ async function render() {
   else if (state.view === 'analyze') renderAnalyze(main);
   else if (state.view === 'mitre-chat') renderMitreChat(main);
   else if (state.view === 'mitre-coverage-db') await renderMitreCoverageDb(main);
+  else if (state.view === 'rag-settings') renderRagSettings(main);
   else if (state.view === 'paloalto-rag') await renderPaloAltoRag(main);
   else if (state.view === 'manage') await renderManage(main);
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+//  RAG Settings page
+// ══════════════════════════════════════════════════════════════════════════
+function renderRagSettings(el) {
+  const ragDefs = [
+    {
+      key: 'paloalto',
+      name: 'Palo Alto RAG',
+      descEs: 'RAG especializado en TechDocs, Unit 42, Cortex XDR y MITRE Evaluations.',
+      descEn: 'Specialized RAG over TechDocs, Unit 42, Cortex XDR and MITRE Evaluations.',
+      status: 'available',
+      action: () => navigate('paloalto-rag'),
+    },
+    {
+      key: 'microsoft',
+      name: 'Microsoft RAG',
+      descEs: 'Conector previsto para documentos de Microsoft Security y Defender.',
+      descEn: 'Planned connector for Microsoft Security and Defender documentation.',
+      status: 'planned',
+    },
+    {
+      key: 'crowdstrike',
+      name: 'CrowdStrike RAG',
+      descEs: 'Conector previsto para base de conocimiento Falcon y reportes de amenaza.',
+      descEn: 'Planned connector for Falcon knowledge base and threat reports.',
+      status: 'planned',
+    },
+    {
+      key: 'fortinet',
+      name: 'Fortinet RAG',
+      descEs: 'Conector previsto para FortiDocs y contenido tecnico de FortiAI.',
+      descEn: 'Planned connector for FortiDocs and FortiAI technical content.',
+      status: 'planned',
+    },
+  ];
+
+  const cards = ragDefs.map(def => {
+    const isAvailable = def.status === 'available';
+    const badgeText = isAvailable ? t('ragSettingsAvailable') : t('ragSettingsPlanned');
+    const badgeColor = isAvailable ? 'var(--success)' : 'var(--warn)';
+    const desc = state.language === 'en' ? def.descEn : def.descEs;
+
+    return `<div class="section" style="margin-bottom:14px">
+      <div class="section-body" style="padding:16px 18px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:8px">
+          <div style="font-size:16px;font-weight:600;color:var(--text)">${esc(def.name)}</div>
+          <span style="font-size:11px;padding:3px 8px;border:1px solid ${badgeColor};color:${badgeColor};border-radius:999px">${badgeText}</span>
+        </div>
+        <div style="font-size:13px;color:var(--text2);margin-bottom:12px">${esc(desc)}</div>
+        <button class="btn btn-sm" style="font-size:12px;padding:5px 10px" ${isAvailable ? `onclick="navigate('paloalto-rag')"` : 'disabled'}>
+          ${isAvailable ? t('ragSettingsOpen') : t('ragSettingsComingSoon')}
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+
+  el.innerHTML = `
+    <div class="page-header">
+      <h1>${t('ragSettingsTitle')}</h1>
+      <p>${t('ragSettingsSubtitle')}</p>
+    </div>
+    <div class="section">
+      <div class="section-header"><span class="section-title">${t('ragSettingsIntro')}</span></div>
+      <div class="section-body" style="padding:14px">${cards}</div>
+    </div>`;
 }
 
 // ══════════════════════════════════════════════════════════════════════════
