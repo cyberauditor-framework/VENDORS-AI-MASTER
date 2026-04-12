@@ -1,0 +1,333 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+.w{padding:1rem 0;font-family:var(--font-sans)}
+h2.sr{position:absolute;width:1px;height:1px;overflow:hidden}
+.hdr h3{font-size:18px;font-weight:500;color:var(--color-text-primary)}
+.hdr p{font-size:13px;color:var(--color-text-secondary);margin-top:4px;line-height:1.6;margin-bottom:1.25rem}
+.top-controls{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1.25rem;align-items:center}
+.mode-btn{font-size:12px;padding:5px 12px;border-radius:999px;border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-secondary);cursor:pointer;transition:all .15s}
+.mode-btn.active{background:#534AB7;color:#EEEDFE;border-color:#534AB7}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1.25rem}
+.st{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:10px 12px}
+.sn{font-size:20px;font-weight:500;color:var(--color-text-primary)}
+.sl{font-size:11px;color:var(--color-text-secondary);margin-top:2px}
+.criteria-list{display:flex;flex-direction:column;gap:10px}
+.crit{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden;cursor:pointer;transition:border-color .15s}
+.crit:hover{border-color:#7F77DD}
+.crit.open{border-color:#534AB7}
+.crit-top{display:flex;align-items:flex-start;gap:12px;padding:14px 16px}
+.num{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:500;flex-shrink:0;margin-top:1px}
+.crit-body{flex:1;min-width:0}
+.crit-name{font-size:14px;font-weight:500;color:var(--color-text-primary)}
+.crit-sub{font-size:12px;color:var(--color-text-secondary);margin-top:3px;line-height:1.5}
+.crit-right{display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0}
+.peso{font-size:17px;font-weight:500;color:var(--color-text-primary)}
+.peso-lbl{font-size:10px;color:var(--color-text-secondary)}
+.cat-pill{font-size:10px;padding:2px 8px;border-radius:999px}
+.detail{border-top:0.5px solid var(--color-border-tertiary);padding:14px 16px;display:none;background:var(--color-background-secondary)}
+.crit.open .detail{display:block}
+.dgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.dblk{background:var(--color-background-primary);border-radius:var(--border-radius-md);padding:10px 12px}
+.dlbl{font-size:10px;color:var(--color-text-secondary);font-weight:500;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
+.dval{font-size:12px;color:var(--color-text-primary);line-height:1.6}
+.vendors-row{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.vchip{font-size:10px;padding:2px 8px;border-radius:999px;border:0.5px solid var(--color-border-tertiary);color:var(--color-text-secondary)}
+.vchip.top{background:#EEEDFE;color:#3C3489;border-color:#AFA9EC}
+.signal-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.sig{font-size:10px;padding:2px 8px;border-radius:999px;background:var(--color-background-secondary);color:var(--color-text-secondary);border:0.5px solid var(--color-border-tertiary)}
+.score-bar{height:5px;border-radius:3px;background:var(--color-border-tertiary);margin-top:5px;overflow:hidden}
+.score-fill{height:100%;border-radius:3px;background:#534AB7;transition:width .4s}
+.cta{font-size:12px;color:#534AB7;cursor:pointer;display:inline-flex;align-items:center;gap:4px;margin-top:8px}
+.filter-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1rem;align-items:center}
+.filter-lbl{font-size:11px;color:var(--color-text-secondary)}
+.fpill{font-size:11px;padding:4px 10px;border-radius:999px;border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-secondary);cursor:pointer;transition:all .15s}
+.fpill.on{border-color:var(--cat-color,#534AB7);color:var(--cat-color,#534AB7);background:var(--cat-bg,#EEEDFE)}
+
+/* Benchmark dark-mode normalization */
+:root {
+  color-scheme: dark;
+  --font-sans: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  --color-background-primary: #161b22;
+  --color-background-secondary: #0d1117;
+  --color-border-secondary: #30363d;
+  --color-border-tertiary: #2a313c;
+  --color-text-primary: #e6edf3;
+  --color-text-secondary: #9aa4b2;
+  --border-radius-md: 10px;
+  --border-radius-lg: 14px;
+}
+html, body {
+  background: #0d1117;
+  color: var(--color-text-primary);
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+/* Dark-safe overrides for legacy light badges/tags */
+.b-leader, .bb, .b-deep, .dpill, .dslm-pill, .vchip.top,
+[style*='background:#EEEDFE'], [style*='background: #EEEDFE'] {
+  background: #241a4a !important;
+  color: #e4ddff !important;
+  border-color: #7d6ce0 !important;
+}
+.b-rising, .bi, .b-native,
+[style*='background:#E1F5EE'], [style*='background: #E1F5EE'] {
+  background: #12352e !important;
+  color: #b7f3e1 !important;
+  border-color: #46a08b !important;
+}
+.be, .b-api,
+[style*='background:#E6F1FB'], [style*='background: #E6F1FB'] {
+  background: #132f48 !important;
+  color: #b7ddff !important;
+  border-color: #4f85b5 !important;
+}
+.r1,
+[style*='background:#FAEEDA'], [style*='background: #FAEEDA'] {
+  background: #3a2d0f !important;
+  color: #f0d58d !important;
+  border-color: #a07c2c !important;
+}
+[style*='background:#FAECE7'], [style*='background: #FAECE7'] {
+  background: #3a2015 !important;
+  color: #ffd0bd !important;
+  border-color: #a86145 !important;
+}
+[style*='background:#FBEAF0'], [style*='background: #FBEAF0'] {
+  background: #341d2c !important;
+  color: #f2cfe0 !important;
+  border-color: #9a5f7a !important;
+}
+.ok, [style*='color:#085041'], [style*='color: #085041'] {
+  color: #8fe8cf !important;
+}
+[style*='color:#0C447C'], [style*='color: #0C447C'],
+[style*='color:#185FA5'], [style*='color: #185FA5'] {
+  color: #b7ddff !important;
+}
+[style*='color:#3C3489'], [style*='color: #3C3489'],
+[style*='color:#534AB7'], [style*='color: #534AB7'] {
+  color: #e4ddff !important;
+}
+</style>
+
+<div class="w">
+<h2 class="sr">10 criterios de adopción de IA para vendors SIEM 2026</h2>
+<div class="hdr">
+  <h3>10 criterios de adopción de IA — vendors SIEM 2026</h3>
+  <p>Framework de evaluación para medir qué tan nativo es el uso de IA en un vendor SIEM. Cada criterio tiene peso relativo, preguntas de evaluación y señales de madurez.</p>
+</div>
+
+<div class="stats">
+  <div class="st"><div class="sn">10</div><div class="sl">Criterios</div></div>
+  <div class="st"><div class="sn">5</div><div class="sl">Categorías</div></div>
+  <div class="st"><div class="sn">100%</div><div class="sl">Peso total</div></div>
+  <div class="st"><div class="sn">2026</div><div class="sl">Edición</div></div>
+</div>
+
+<div class="filter-row">
+  <span class="filter-lbl">Categoría:</span>
+  <button class="fpill on" style="--cat-color:#534AB7;--cat-bg:#EEEDFE" data-cat="all" onclick="setFilter(this,'all')">Todas</button>
+  <button class="fpill" style="--cat-color:#185FA5;--cat-bg:#E6F1FB" data-cat="deteccion" onclick="setFilter(this,'deteccion')">Detección</button>
+  <button class="fpill" style="--cat-color:#0F6E56;--cat-bg:#E1F5EE" data-cat="operaciones" onclick="setFilter(this,'operaciones')">Operaciones</button>
+  <button class="fpill" style="--cat-color:#854F0B;--cat-bg:#FAEEDA" data-cat="datos" onclick="setFilter(this,'datos')">Datos & modelos</button>
+  <button class="fpill" style="--cat-color:#993C1D;--cat-bg:#FAECE7" data-cat="arquitectura" onclick="setFilter(this,'arquitectura')">Arquitectura</button>
+  <button class="fpill" style="--cat-color:#72243E;--cat-bg:#FBEAF0" data-cat="negocio" onclick="setFilter(this,'negocio')">Negocio</button>
+</div>
+
+<div class="criteria-list" id="clist"></div>
+</div>
+
+<script>
+const cats = {
+  deteccion:{label:"Detección",color:"#185FA5",bg:"#E6F1FB",dark:"#0C447C"},
+  operaciones:{label:"Operaciones",color:"#0F6E56",bg:"#E1F5EE",dark:"#085041"},
+  datos:{label:"Datos & modelos",color:"#854F0B",bg:"#FAEEDA",dark:"#633806"},
+  arquitectura:{label:"Arquitectura",color:"#993C1D",bg:"#FAECE7",dark:"#712B13"},
+  negocio:{label:"Negocio",color:"#72243E",bg:"#FBEAF0",dark:"#4B1528"}
+};
+
+const criteria = [
+  {
+    id:1, cat:"deteccion", peso:15,
+    name:"Detección basada en modelos de comportamiento (UEBA nativo)",
+    sub:"El motor de detección usa ML/AI para modelar el comportamiento de usuarios, entidades y sistemas, no solo reglas estáticas.",
+    por_que:"Las reglas estáticas generan miles de falsos positivos y no detectan amenazas nuevas. Un SIEM AI-native debe aprender qué es 'normal' para cada entidad y alertar solo cuando hay desviación real con contexto.",
+    preguntas:["¿El vendor usa ML unsupervised para baseline de comportamiento?","¿El UEBA está integrado en el motor SIEM o es un módulo separado?","¿Los modelos se re-entrenan con los datos del cliente o son globales?","¿Cuánto tiempo tarda el modelo en establecer un baseline útil?"],
+    senales_madurez:["Baseline por entidad (no por grupo)","Detección de amenazas internas sin reglas previas","Re-entrenamiento automático periódico"],
+    senales_fallo:["UEBA como add-on de pago separado","Modelos pre-entrenados no ajustables","Alertas sin contexto de comportamiento histórico"],
+    vendors_top:["Exabeam","Securonix","Gurucul"],
+    vendors_otros:["Microsoft Sentinel","IBM QRadar","Devo"]
+  },
+  {
+    id:2, cat:"deteccion", peso:13,
+    name:"Correlación y razonamiento con LLM sobre eventos de seguridad",
+    sub:"El vendor usa Large Language Models para correlacionar eventos, generar hipótesis de ataque y explicar cadenas de amenaza en lenguaje natural.",
+    por_que:"Los analistas pierden horas correlacionando eventos manualmente. Un LLM de seguridad puede sintetizar miles de logs en segundos, proponer una hipótesis de ataque y explicarla como si fuera un analista senior.",
+    preguntas:["¿El LLM está fine-tuned sobre datos de seguridad o es un modelo genérico?","¿Puede el analista hacer queries en lenguaje natural sobre los logs?","¿El sistema explica por qué correlacionó esos eventos específicos?","¿El LLM genera playbooks de respuesta automáticamente?"],
+    senales_madurez:["Natural language queries sobre petabytes de logs","Explicación causal de cada alerta","DSLM propio o fine-tuned en telemetría de seguridad"],
+    senales_fallo:["ChatGPT genérico sin fine-tuning en seguridad","Solo summarization sin razonamiento","Hallucinations frecuentes en contexto de amenazas"],
+    vendors_top:["Microsoft Sentinel","Anvilogic","Google SecOps"],
+    vendors_otros:["Exabeam","Securonix","Devo"]
+  },
+  {
+    id:3, cat:"operaciones", peso:12,
+    name:"Triage autónomo y priorización de alertas con IA",
+    sub:"El sistema reduce automáticamente el volumen de alertas mediante IA que descarta falsos positivos, agrupa eventos relacionados y prioriza los incidentes de mayor riesgo real.",
+    por_que:"El alert fatigue es el problema número uno de los SOC. Un SIEM AI-native debe reducir el ruido en un 90%+ filtrando alertas con contexto de amenaza activa, impacto de negocio y comportamiento histórico del activo.",
+    preguntas:["¿Cuál es el ratio documentado de reducción de alertas?","¿El sistema explica por qué descartó una alerta?","¿La priorización incorpora contexto de amenaza activa (TI)?","¿El analista puede dar feedback al modelo para mejorarlo?"],
+    senales_madurez:["Reducción de alertas >85% documentada","Agrupación automática en incidentes coherentes","Priorización con contexto de actor de amenaza activo"],
+    senales_fallo:["Solo correlación de reglas sin ML","Sin mecanismo de feedback del analista","Priorización basada solo en severity score estático"],
+    vendors_top:["Stellar Cyber","Anvilogic","Securonix"],
+    vendors_otros:["LogRhythm Axon","Exabeam","Devo"]
+  },
+  {
+    id:4, cat:"operaciones", peso:11,
+    name:"Automatización de investigación y respuesta (AI-driven SOAR integrado)",
+    sub:"La plataforma tiene capacidades de automatización de respuesta nativas impulsadas por IA, sin depender exclusivamente de herramientas SOAR externas.",
+    por_que:"La separación SIEM/SOAR crea fricción operativa y retrasos en la respuesta. Los vendors más maduros integran IA que ejecuta playbooks adaptativos, enriquece automáticamente los incidentes y puede tomar acciones de contención.",
+    preguntas:["¿El SOAR está integrado nativamente o requiere licencia adicional?","¿Los playbooks se generan o adaptan automáticamente con IA?","¿El sistema puede ejecutar acciones de contención autónomas?","¿Hay human-in-the-loop configurable por tipo de acción?"],
+    senales_madurez:["Playbooks auto-generados por IA desde el incidente","Enriquecimiento automático sin intervención humana","Contención configurable con aprobación o autónoma"],
+    senales_fallo:["SOAR como módulo separado sin integración profunda","Playbooks 100% manuales sin adaptación AI","Sin capacidad de ejecución autónoma de acciones"],
+    vendors_top:["Google SecOps","Microsoft Sentinel","Palo Alto XSIAM"],
+    vendors_otros:["Splunk SOAR","IBM QRadar","Exabeam"]
+  },
+  {
+    id:5, cat:"datos", peso:10,
+    name:"Ingesta y normalización inteligente de datos (schema-on-read con AI)",
+    sub:"El SIEM usa IA para normalizar automáticamente fuentes de datos heterogéneas sin requerir parsers manuales, adaptándose a nuevos formatos de forma dinámica.",
+    por_que:"La normalización de logs es uno de los mayores costes ocultos de un SIEM. Los vendors que usan IA para parsear automáticamente cualquier fuente eliminan semanas de integración por cada nueva fuente de datos.",
+    preguntas:["¿El sistema parsea automáticamente nuevas fuentes sin configuración manual?","¿Usa schema-on-read o requiere normalización previa a la ingesta?","¿La IA detecta campos de seguridad relevantes en fuentes desconocidas?","¿Cuánto tiempo lleva integrar una nueva fuente de datos?"],
+    senales_madurez:["Parseo automático de fuentes desconocidas en <1h","Schema-on-read nativo","Detección automática de campos IOC/TTPs en logs crudos"],
+    senales_fallo:["Parsers manuales requeridos para cada fuente","Semanas de integración por fuente no estándar","Normalización solo hacia esquemas propietarios rígidos"],
+    vendors_top:["Elastic Security","Devo","Anvilogic"],
+    vendors_otros:["Microsoft Sentinel","Stellar Cyber","Google SecOps"]
+  },
+  {
+    id:6, cat:"datos", peso:10,
+    name:"Modelo de datos unificado y búsqueda semántica con IA",
+    sub:"La plataforma ofrece un data lake de seguridad con búsqueda semántica (no solo sintáctica), permitiendo encontrar eventos relacionados por significado aunque no compartan campos idénticos.",
+    por_que:"Los atacantes modifican sus TTPs constantemente para evadir reglas basadas en strings exactos. La búsqueda semántica con embeddings permite encontrar comportamientos similares aunque los campos o valores sean distintos.",
+    preguntas:["¿El sistema usa embeddings vectoriales para búsqueda de comportamientos?","¿Puede encontrar eventos relacionados aunque varíen los campos exactos?","¿El data lake soporta retención caliente para búsqueda AI en tiempo real?","¿Ofrece threat hunting semántico sin requerir KQL/SPL experto?"],
+    senales_madurez:["Búsqueda semántica sobre logs históricos","Threat hunting sin sintaxis de query experta","Embeddings sobre eventos para clustering de comportamiento"],
+    senales_fallo:["Solo búsqueda por string/regex exactos","Query language propietario sin asistente AI","Sin capacidad de búsqueda por similitud semántica"],
+    vendors_top:["Elastic Security","Gurucul","Stellar Cyber"],
+    vendors_otros:["Devo","Anvilogic","Microsoft Sentinel"]
+  },
+  {
+    id:7, cat:"arquitectura", peso:9,
+    name:"Arquitectura cloud-native y escalabilidad elástica del motor AI",
+    sub:"Los modelos de IA se entrenan y sirven en una arquitectura cloud-native que escala elásticamente con el volumen de datos sin degradación de latencia de detección.",
+    por_que:"Un SIEM que procesa 100GB/día con IA no puede usar la misma arquitectura que uno que procesa 10TB/día. Los vendors AI-native diseñaron su stack para escalar el motor de ML junto con la ingesta, no como un overlay.",
+    preguntas:["¿El motor AI escala independientemente del motor de ingesta?","¿Cuál es la latencia de detección AI con volúmenes >1TB/día?","¿Los modelos se re-entrenan online o requieren ventanas de mantenimiento?","¿La arquitectura soporta multi-tenant con modelos aislados por cliente?"],
+    senales_madurez:["Re-entrenamiento online sin ventanas de mantenimiento","Latencia de detección <60s incluso a escala","Modelos multi-tenant con aislamiento de datos garantizado"],
+    senales_fallo:["Motor AI como servicio externo batch (no streaming)","Degradación de detección con picos de ingesta","Modelo único compartido entre clientes sin personalización"],
+    vendors_top:["Google SecOps","Devo","Stellar Cyber"],
+    vendors_otros:["Microsoft Sentinel","Elastic Security","Securonix"]
+  },
+  {
+    id:8, cat:"arquitectura", peso:8,
+    name:"Integración de Threat Intelligence externa con enriquecimiento AI en tiempo real",
+    sub:"El SIEM enriquece automáticamente cada evento y alerta con contexto de inteligencia de amenazas externas usando IA para correlacionar IOCs, TTPs y actores con los eventos internos.",
+    por_que:"Un SIEM aislado de la inteligencia de amenazas global es ciego al contexto. Los mejores vendors enriquecen en tiempo real cada alerta con información de quién ataca, cómo y qué sectores están siendo objetivo ahora.",
+    preguntas:["¿El TI externo se integra en tiempo real o en batch?","¿El sistema correlaciona automáticamente IOCs con eventos históricos?","¿La IA puede inferir TTPs de un actor aunque el IOC sea nuevo?","¿Hay feeds de TI propietarios o solo integración con terceros?"],
+    senales_madurez:["TI propio + integración con feeds externos líderes","Correlación retroactiva automática cuando aparece nuevo IOC","Inferencia de actor de amenaza sin IOC exacto"],
+    senales_fallo:["Solo integración con feeds externos sin procesamiento AI","Correlación batch diaria en lugar de tiempo real","Sin capacidad de inferencia de actor sin match exacto de IOC"],
+    vendors_top:["Microsoft Sentinel","Recorded Future (int.)","CrowdStrike (int.)"],
+    vendors_otros:["Google SecOps","IBM QRadar","LogRhythm Axon"]
+  },
+  {
+    id:9, cat:"negocio", peso:7,
+    name:"Explicabilidad e interpretabilidad de las decisiones AI (XAI)",
+    sub:"El vendor ofrece explicaciones comprensibles de por qué el sistema AI generó una alerta, correlacionó eventos o priorizó un incidente, sin requerir que el analista sea data scientist.",
+    por_que:"Un analista que no entiende por qué el sistema alertó no puede validar, escalar ni aprender de esa alerta. La explicabilidad no es un nice-to-have: es un requisito regulatorio creciente (NIS2, DORA) y operativo.",
+    preguntas:["¿Cada alerta incluye una explicación de los factores AI que la generaron?","¿El sistema muestra qué datos influyeron más en la decisión del modelo?","¿Las explicaciones son comprensibles para analistas L1 sin ML?","¿Hay trazabilidad auditablede las decisiones AI para cumplimiento?"],
+    senales_madurez:["Explicación en lenguaje natural por cada alerta AI","Feature importance visible para cada decisión del modelo","Audit log de decisiones AI para NIS2/DORA/SOX"],
+    senales_fallo:["Alertas AI sin explicación de origen","Caja negra sin visibilidad de factores","Explicaciones solo para equipos técnicos avanzados"],
+    vendors_top:["Exabeam","Gurucul","IBM QRadar AI Suite"],
+    vendors_otros:["Securonix","Microsoft Sentinel","Anvilogic"]
+  },
+  {
+    id:10, cat:"negocio", peso:5,
+    name:"ROI medible de la IA: métricas operativas y reducción de MTTR",
+    sub:"El vendor proporciona métricas objetivas y auditables que demuestran el impacto real de la IA en la operación del SOC: reducción de MTTR, MTTA, volumen de alertas y horas analista ahorradas.",
+    por_que:"El 60% de los CISOs en 2026 exigen ROI cuantificable de sus inversiones en IA. Los vendors que no pueden demostrar reducción de MTTR, falsos positivos y coste operativo del SOC pierden renovaciones frente a los que sí lo hacen.",
+    preguntas:["¿El vendor publica benchmarks de reducción de MTTR documentados?","¿Hay dashboard de ROI operativo nativo en la plataforma?","¿Se puede medir el ahorro en horas-analista generado por la IA?","¿Los SLAs incluyen métricas de rendimiento del motor AI?"],
+    senales_madurez:["Dashboard de ROI operativo nativo con métricas históricas","Benchmarks públicos de MTTR/MTTA por sector","SLAs que incluyen rendimiento del motor AI"],
+    senales_fallo:["ROI solo basado en casos de cliente sin metodología","Sin métricas de rendimiento AI en el producto","Imposible medir contribución de la IA vs reglas manuales"],
+    vendors_top:["Exabeam","Securonix","Microsoft Sentinel"],
+    vendors_otros:["Devo","Stellar Cyber","Google SecOps"]
+  }
+];
+
+let activeFilter = "all";
+let openId = null;
+
+function setFilter(el, cat){
+  activeFilter = cat;
+  openId = null;
+  document.querySelectorAll('.fpill').forEach(p=>p.classList.remove('on'));
+  el.classList.add('on');
+  render();
+}
+
+function toggle(id){
+  openId = openId===id ? null : id;
+  render();
+}
+
+function render(){
+  const el = document.getElementById("clist");
+  const filtered = activeFilter==="all" ? criteria : criteria.filter(c=>c.cat===activeFilter);
+  el.innerHTML = filtered.map(c=>{
+    const cat = cats[c.cat];
+    const isOpen = openId===c.id;
+    return `<div class="crit${isOpen?' open':''}" onclick="toggle(${c.id})">
+      <div class="crit-top">
+        <div class="num" style="background:${cat.bg};color:${cat.dark}">${c.id}</div>
+        <div class="crit-body">
+          <div class="crit-name">${c.name}</div>
+          <div class="crit-sub">${c.sub}</div>
+        </div>
+        <div class="crit-right">
+          <div><span class="peso">${c.peso}%</span><div class="peso-lbl">peso</div></div>
+          <span class="cat-pill" style="background:${cat.bg};color:${cat.dark}">${cat.label}</span>
+        </div>
+      </div>
+      <div class="detail">
+        <div class="dgrid">
+          <div class="dblk">
+            <div class="dlbl">Por qué es crítico</div>
+            <div class="dval">${c.por_que}</div>
+          </div>
+          <div class="dblk">
+            <div class="dlbl">Preguntas de evaluación al vendor</div>
+            ${c.preguntas.map(p=>`<div class="dval" style="margin-bottom:4px">· ${p}</div>`).join('')}
+          </div>
+          <div class="dblk">
+            <div class="dlbl">Señales de madurez AI</div>
+            ${c.senales_madurez.map(s=>`<div class="dval" style="color:#085041;margin-bottom:3px">✓ ${s}</div>`).join('')}
+            <div class="dlbl" style="margin-top:8px">Señales de alerta</div>
+            ${c.senales_fallo.map(s=>`<div class="dval" style="color:#A32D2D;margin-bottom:3px">✗ ${s}</div>`).join('')}
+          </div>
+          <div class="dblk">
+            <div class="dlbl">Vendors que lideran este criterio</div>
+            <div class="vendors-row">${c.vendors_top.map(v=>`<span class="vchip top">${v}</span>`).join('')}</div>
+            <div class="dlbl" style="margin-top:8px">Vendors con adopción parcial</div>
+            <div class="vendors-row">${c.vendors_otros.map(v=>`<span class="vchip">${v}</span>`).join('')}</div>
+          </div>
+        </div>
+        <div class="cta" onclick="event.stopPropagation();sendPrompt('Profundiza en el criterio ${c.id}: ${c.name} — cómo evaluarlo en un RFP de SIEM y qué vendors lo implementan mejor en 2026')">Ver análisis profundo ↗</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+render();
+</script>
+
+
+
+
+

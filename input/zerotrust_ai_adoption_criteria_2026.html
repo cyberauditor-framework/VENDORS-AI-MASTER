@@ -1,0 +1,519 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+.w{padding:1rem 0;font-family:var(--font-sans)}
+h2.sr{position:absolute;width:1px;height:1px;overflow:hidden}
+.hdr h3{font-size:18px;font-weight:500;color:var(--color-text-primary)}
+.hdr p{font-size:13px;color:var(--color-text-secondary);margin-top:4px;line-height:1.6;margin-bottom:1.25rem}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1.25rem}
+.st{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:10px 12px}
+.sn{font-size:20px;font-weight:500;color:var(--color-text-primary)}
+.sl{font-size:11px;color:var(--color-text-secondary);margin-top:2px}
+.filter-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1rem;align-items:center}
+.filter-lbl{font-size:11px;color:var(--color-text-secondary)}
+.fpill{font-size:11px;padding:4px 10px;border-radius:999px;border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-secondary);cursor:pointer;transition:all .15s}
+.fpill.on{border-color:var(--cc,#534AB7);color:var(--cc,#534AB7);background:var(--cb,#EEEDFE)}
+.criteria-list{display:flex;flex-direction:column;gap:10px}
+.crit{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden;cursor:pointer;transition:border-color .15s}
+.crit:hover{border-color:#7F77DD}
+.crit.open{border-color:#534AB7}
+.crit-top{display:flex;align-items:flex-start;gap:12px;padding:14px 16px}
+.num{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:500;flex-shrink:0;margin-top:1px}
+.crit-body{flex:1;min-width:0}
+.crit-name{font-size:14px;font-weight:500;color:var(--color-text-primary)}
+.crit-sub{font-size:12px;color:var(--color-text-secondary);margin-top:3px;line-height:1.5}
+.crit-right{display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0}
+.peso{font-size:17px;font-weight:500;color:var(--color-text-primary)}
+.peso-lbl{font-size:10px;color:var(--color-text-secondary)}
+.cat-pill{font-size:10px;padding:2px 8px;border-radius:999px}
+.pillar-row{display:flex;gap:4px;flex-wrap:wrap;margin-top:5px}
+.pillar{font-size:10px;padding:2px 7px;border-radius:999px;border:0.5px solid var(--color-border-tertiary);color:var(--color-text-secondary);background:var(--color-background-secondary)}
+.detail{border-top:0.5px solid var(--color-border-tertiary);padding:14px 16px;display:none;background:var(--color-background-secondary)}
+.crit.open .detail{display:block}
+.dgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.dblk{background:var(--color-background-primary);border-radius:var(--border-radius-md);padding:10px 12px}
+.dlbl{font-size:10px;color:var(--color-text-secondary);font-weight:500;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
+.dval{font-size:12px;color:var(--color-text-primary);line-height:1.6}
+.vendors-row{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.vchip{font-size:10px;padding:2px 8px;border-radius:999px;border:0.5px solid var(--color-border-tertiary);color:var(--color-text-secondary)}
+.vchip.top{background:#EEEDFE;color:#3C3489;border-color:#AFA9EC}
+.ok{color:#085041;margin-bottom:3px}
+.ko{color:#A32D2D;margin-bottom:3px}
+.cta{font-size:12px;color:#534AB7;cursor:pointer;display:inline-flex;align-items:center;gap:4px;margin-top:8px}
+.rel-bar{display:flex;gap:2px;margin-top:2px}
+.bar-s{height:4px;flex:1;border-radius:2px}
+.bon{background:#534AB7}
+.boff{background:var(--color-border-tertiary)}
+.diff-badge{display:inline-block;font-size:10px;padding:3px 8px;border-radius:var(--border-radius-md);margin-top:8px;line-height:1.5}
+.zt-legend{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:1rem}
+.zt-li{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--color-text-secondary)}
+.zt-dot{width:8px;height:8px;border-radius:50%}
+
+/* Benchmark dark-mode normalization */
+:root {
+  color-scheme: dark;
+  --font-sans: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  --color-background-primary: #161b22;
+  --color-background-secondary: #0d1117;
+  --color-border-secondary: #30363d;
+  --color-border-tertiary: #2a313c;
+  --color-text-primary: #e6edf3;
+  --color-text-secondary: #9aa4b2;
+  --border-radius-md: 10px;
+  --border-radius-lg: 14px;
+}
+html, body {
+  background: #0d1117;
+  color: var(--color-text-primary);
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+/* Dark-safe overrides for legacy light badges/tags */
+.b-leader, .bb, .b-deep, .dpill, .dslm-pill, .vchip.top,
+[style*='background:#EEEDFE'], [style*='background: #EEEDFE'] {
+  background: #241a4a !important;
+  color: #e4ddff !important;
+  border-color: #7d6ce0 !important;
+}
+.b-rising, .bi, .b-native,
+[style*='background:#E1F5EE'], [style*='background: #E1F5EE'] {
+  background: #12352e !important;
+  color: #b7f3e1 !important;
+  border-color: #46a08b !important;
+}
+.be, .b-api,
+[style*='background:#E6F1FB'], [style*='background: #E6F1FB'] {
+  background: #132f48 !important;
+  color: #b7ddff !important;
+  border-color: #4f85b5 !important;
+}
+.r1,
+[style*='background:#FAEEDA'], [style*='background: #FAEEDA'] {
+  background: #3a2d0f !important;
+  color: #f0d58d !important;
+  border-color: #a07c2c !important;
+}
+[style*='background:#FAECE7'], [style*='background: #FAECE7'] {
+  background: #3a2015 !important;
+  color: #ffd0bd !important;
+  border-color: #a86145 !important;
+}
+[style*='background:#FBEAF0'], [style*='background: #FBEAF0'] {
+  background: #341d2c !important;
+  color: #f2cfe0 !important;
+  border-color: #9a5f7a !important;
+}
+.ok, [style*='color:#085041'], [style*='color: #085041'] {
+  color: #8fe8cf !important;
+}
+[style*='color:#0C447C'], [style*='color: #0C447C'],
+[style*='color:#185FA5'], [style*='color: #185FA5'] {
+  color: #b7ddff !important;
+}
+[style*='color:#3C3489'], [style*='color: #3C3489'],
+[style*='color:#534AB7'], [style*='color: #534AB7'] {
+  color: #e4ddff !important;
+}
+</style>
+
+<div class="w">
+<h2 class="sr">10 criterios de adopción de IA para vendors Zero Trust 2026</h2>
+<div class="hdr">
+  <h3>10 criterios de adopción de IA — vendors Zero Trust 2026</h3>
+  <p>Framework de evaluación para medir la madurez AI-native en plataformas Zero Trust. Cada criterio indica los pilares NIST ZTA que cubre: identidad, dispositivo, red, aplicación y datos.</p>
+</div>
+
+<div class="stats">
+  <div class="st"><div class="sn">10</div><div class="sl">Criterios</div></div>
+  <div class="st"><div class="sn">5</div><div class="sl">Categorías</div></div>
+  <div class="st"><div class="sn">100%</div><div class="sl">Peso total</div></div>
+  <div class="st"><div class="sn">2026</div><div class="sl">Edición</div></div>
+</div>
+
+<div class="zt-legend">
+  <span style="font-size:11px;color:var(--color-text-secondary);font-weight:500">Pilares ZTA:</span>
+  <div class="zt-li"><div class="zt-dot" style="background:#185FA5"></div>Identidad</div>
+  <div class="zt-li"><div class="zt-dot" style="background:#0F6E56"></div>Dispositivo</div>
+  <div class="zt-li"><div class="zt-dot" style="background:#854F0B"></div>Red</div>
+  <div class="zt-li"><div class="zt-dot" style="background:#993C1D"></div>Aplicación</div>
+  <div class="zt-li"><div class="zt-dot" style="background:#72243E"></div>Datos</div>
+</div>
+
+<div class="filter-row">
+  <span class="filter-lbl">Categoría:</span>
+  <button class="fpill on" style="--cc:#534AB7;--cb:#EEEDFE" data-cat="all" onclick="setF(this,'all')">Todas</button>
+  <button class="fpill" style="--cc:#185FA5;--cb:#E6F1FB" data-cat="acceso" onclick="setF(this,'acceso')">Acceso & Política</button>
+  <button class="fpill" style="--cc:#0F6E56;--cb:#E1F5EE" data-cat="red" onclick="setF(this,'red')">Red & Microsegmentación</button>
+  <button class="fpill" style="--cc:#854F0B;--cb:#FAEEDA" data-cat="dispositivo" onclick="setF(this,'dispositivo')">Dispositivo & Endpoint</button>
+  <button class="fpill" style="--cc:#993C1D;--cb:#FAECE7" data-cat="datos" onclick="setF(this,'datos')">Datos & Aplicación</button>
+  <button class="fpill" style="--cc:#72243E;--cb:#FBEAF0" data-cat="operaciones" onclick="setF(this,'operaciones')">Operaciones & Negocio</button>
+</div>
+
+<div class="criteria-list" id="clist"></div>
+</div>
+
+<script>
+const cats={
+  acceso:{label:"Acceso & Política",color:"#185FA5",bg:"#E6F1FB",dark:"#0C447C"},
+  red:{label:"Red & Microsegmentación",color:"#0F6E56",bg:"#E1F5EE",dark:"#085041"},
+  dispositivo:{label:"Dispositivo & Endpoint",color:"#854F0B",bg:"#FAEEDA",dark:"#633806"},
+  datos:{label:"Datos & Aplicación",color:"#993C1D",bg:"#FAECE7",dark:"#712B13"},
+  operaciones:{label:"Operaciones & Negocio",color:"#72243E",bg:"#FBEAF0",dark:"#4B1528"}
+};
+
+const pillarColors={
+  "Identidad":"#185FA5","Dispositivo":"#0F6E56","Red":"#854F0B","Aplicación":"#993C1D","Datos":"#72243E"
+};
+
+const criteria=[
+  {
+    id:1,cat:"acceso",peso:15,
+    pillars:["Identidad","Dispositivo","Red"],
+    name:"Motor de política de acceso AI-driven con decisión contextual en tiempo real",
+    sub:"El Policy Decision Point (PDP) usa AI para evaluar cada solicitud de acceso considerando simultáneamente identidad, postura del dispositivo, comportamiento histórico, contexto de red, sensibilidad del recurso y amenaza activa — tomando decisiones de acceso en milisegundos sin reglas estáticas.",
+    por_que:"El Zero Trust tradicional opera con políticas estáticas basadas en roles: si el usuario pertenece al grupo correcto, accede. Esto es ZT en nombre pero no en esencia. Un PDP AI-native evalúa docenas de señales en tiempo real para cada solicitud individual — el mismo usuario, desde el mismo dispositivo, puede obtener acceso completo a las 9am y acceso denegado a las 11pm si su comportamiento ha cambiado. Esta es la diferencia entre control de acceso binario y control de acceso continuo.",
+    preguntas:[
+      "¿El PDP evalúa señales en tiempo real o aplica políticas estáticas de rol/grupo?",
+      "¿Cuántas señales contextuales considera el motor AI en cada decisión de acceso?",
+      "¿La latencia de decisión del PDP es <100ms incluso bajo carga máxima?",
+      "¿Las decisiones del motor AI son explicables y auditables para cada solicitud?"
+    ],
+    madurez:[
+      "PDP AI que evalúa >20 señales contextuales por solicitud de acceso",
+      "Latencia de decisión <100ms en P99 bajo carga máxima documentada",
+      "Explicabilidad de decisión de acceso para auditoría y debugging"
+    ],
+    fallo:[
+      "Políticas estáticas de rol/grupo sin evaluación de señales dinámicas",
+      "Latencia de decisión >500ms que impacta la experiencia del usuario",
+      "Decisiones de acceso opacas sin trazabilidad de factores AI"
+    ],
+    vtop:["Zscaler","Palo Alto Prisma Access","Cloudflare One"],
+    votros:["Illumio","Appgate","Akamai Enterprise"],
+    rel:5,
+    diferenciador:"El cerebro del Zero Trust AI-native: sin PDP dinámico, el resto de la arquitectura es ZT de nombre pero no de fondo."
+  },
+  {
+    id:2,cat:"acceso",peso:14,
+    pillars:["Identidad","Aplicación"],
+    name:"Acceso de mínimo privilegio dinámico con AI de ajuste continuo de permisos",
+    sub:"La plataforma ajusta continuamente los permisos de acceso de cada usuario y workload al mínimo necesario en cada momento — no al mínimo del rol — usando AI que analiza el uso real de cada permiso y reduce la superficie de acceso activa de forma automática y sin fricción para el usuario legítimo.",
+    por_que:"El principio de mínimo privilegio es el núcleo del Zero Trust, pero implementarlo de forma estática es imposible a escala: los roles acumulan permisos que nadie usa pero que nadie quita. La AI que analiza el uso real de cada permiso y ajusta el alcance de acceso activo de forma dinámica implementa el verdadero mínimo privilegio — no el teórico del rol, sino el operativo del comportamiento real.",
+    preguntas:[
+      "¿El sistema reduce automáticamente permisos no usados sin intervención del administrador?",
+      "¿La reducción de privilegios es continua o solo en revisiones periódicas programadas?",
+      "¿El ajuste de permisos genera fricción para el usuario legítimo o es transparente?",
+      "¿La AI distingue entre permisos no usados habitualmente y permisos necesarios ocasionalmente?"
+    ],
+    madurez:[
+      "Reducción automática de permisos no usados en <48h de inactividad",
+      "Ajuste de privilegios transparente para el usuario sin re-autenticación innecesaria",
+      "Distinción AI entre permisos inactivos permanentemente y de uso esporádico"
+    ],
+    fallo:[
+      "Permisos basados en rol fijo sin ajuste por uso real",
+      "Reducción de privilegios solo en revisiones periódicas manuales",
+      "Ajuste de permisos que requiere re-autenticación del usuario cada vez"
+    ],
+    vtop:["Cloudflare One","Opal Security","Palo Alto Prisma Access"],
+    votros:["Zscaler","Appgate","Axis Security"],
+    rel:5,
+    diferenciador:"Implementa el verdadero mínimo privilegio operativo, no el teórico del diseño de roles."
+  },
+  {
+    id:3,cat:"red",peso:12,
+    pillars:["Red","Dispositivo"],
+    name:"Microsegmentación AI-driven con políticas auto-generadas y adaptación continua",
+    sub:"La plataforma descubre automáticamente los flujos de comunicación legítimos entre workloads, genera políticas de microsegmentación basadas en ese comportamiento real usando AI, y las ajusta dinámicamente cuando los patrones de comunicación cambian — sin requerir que el equipo de red defina cada regla manualmente.",
+    por_que:"La microsegmentación manual es el mayor inhibidor de adopción del Zero Trust de red: definir decenas de miles de reglas para cubrir todos los flujos de un datacenter moderno es inviable. La AI que aprende los flujos legítimos y genera las políticas automáticamente elimina este obstáculo y garantiza que la segmentación refleje el comportamiento real en lugar de una aproximación manual siempre desactualizada.",
+    preguntas:[
+      "¿El sistema descubre y mapea automáticamente los flujos de comunicación entre workloads?",
+      "¿Las políticas de segmentación se generan por AI basándose en el comportamiento observado?",
+      "¿Las políticas se actualizan automáticamente cuando cambian los patrones de comunicación?",
+      "¿Hay un modo simulación que permita validar las políticas antes de aplicarlas en producción?"
+    ],
+    madurez:[
+      "Discovery automático de flujos y generación AI de políticas de segmentación",
+      "Actualización dinámica de políticas ante cambio de patrones sin intervención manual",
+      "Modo simulación que valida impacto de políticas antes de enforcement"
+    ],
+    fallo:[
+      "Políticas de microsegmentación 100% manuales sin asistencia AI",
+      "Políticas estáticas que se desactualizan con cada cambio de infraestructura",
+      "Sin modo simulación: las políticas se aplican directamente en producción"
+    ],
+    vtop:["Illumio","Zscaler","ColorTokens"],
+    votros:["Akamai Enterprise","Palo Alto Prisma Access","Banyan Security"],
+    rel:5,
+    diferenciador:"Resuelve el principal bloqueador de adopción del ZT de red: la inviabilidad operativa de las políticas manuales a escala."
+  },
+  {
+    id:4,cat:"dispositivo",peso:11,
+    pillars:["Dispositivo","Identidad"],
+    name:"Evaluación continua de postura de dispositivo con AI y acceso condicionado en tiempo real",
+    sub:"La plataforma evalúa continuamente la postura de seguridad de cada dispositivo — estado del EDR, parches aplicados, configuración de seguridad, comportamiento del endpoint — y condiciona el nivel de acceso al recurso en tiempo real según el riesgo actual del dispositivo, no solo en el momento del login.",
+    por_que:"Un dispositivo que pasa la evaluación de postura al conectarse puede comprometerse 30 minutos después. La evaluación puntual en el login es el equivalente del dispositivo a la autenticación estática: captura el estado en un momento, no el estado continuo. La AI que evalúa la postura del dispositivo de forma continua y reduce el acceso inmediatamente cuando detecta una degradación implementa el verdadero Zero Trust de dispositivo.",
+    preguntas:[
+      "¿La evaluación de postura del dispositivo es continua o solo en el momento de la conexión?",
+      "¿El acceso al recurso se degrada automáticamente si la postura del dispositivo empeora durante la sesión?",
+      "¿La AI integra señales del EDR/XDR para enriquecer la evaluación de postura?",
+      "¿Qué señales de postura evalúa: parches, configuración, comportamiento, presencia de agentes de seguridad?"
+    ],
+    madurez:[
+      "Evaluación de postura continua con degradación de acceso automática en <60s",
+      "Integración nativa con EDR/XDR para señales de postura enriquecidas",
+      "Evaluación de >15 señales de postura incluyendo comportamiento del endpoint"
+    ],
+    fallo:[
+      "Evaluación de postura solo en el momento de la conexión inicial",
+      "Sin degradación de acceso ante deterioro de postura durante sesión activa",
+      "Postura basada solo en presencia de agente sin análisis de comportamiento"
+    ],
+    vtop:["Zscaler","Palo Alto Prisma Access","Cloudflare One"],
+    votros:["Akamai Enterprise","Appgate","Banyan Security"],
+    rel:5,
+    diferenciador:"Implementa el Zero Trust de dispositivo real: el acceso refleja el estado actual del endpoint, no el estado en el login."
+  },
+  {
+    id:5,cat:"red",peso:10,
+    pillars:["Red","Aplicación"],
+    name:"Inspección de tráfico con AI para detección de amenazas cifradas y exfiltración",
+    sub:"La plataforma inspecciona el tráfico cifrado (TLS 1.3) usando AI que analiza metadatos, patrones de flujo y comportamiento de sesión para detectar amenazas, C2 encubierto y exfiltración de datos sin romper el cifrado end-to-end de forma innecesaria.",
+    por_que:"El 95% del tráfico de red en 2026 está cifrado, incluyendo el tráfico malicioso. Los atacantes usan TLS para ocultar C2, exfiltración y movimiento lateral. Romper todo el TLS para inspección tiene un coste de privacidad y rendimiento inaceptable. La AI que detecta amenazas analizando metadatos y patrones de flujo sin descifrar el contenido es el equilibrio necesario entre seguridad y privacidad.",
+    preguntas:[
+      "¿La plataforma detecta amenazas en tráfico cifrado sin necesidad de descifrado completo?",
+      "¿Qué señales analiza la AI en tráfico TLS: metadatos, patrones de flujo, tamaño de paquetes?",
+      "¿Detecta C2 encubierto en HTTPS y DNS-over-HTTPS sin descifrado?",
+      "¿La inspección TLS selectiva (cuando es necesaria) es granular y auditables?"
+    ],
+    madurez:[
+      "Detección de C2 y exfiltración en tráfico TLS sin descifrado universal",
+      "Análisis de metadatos de flujo con modelos AI entrenados en patrones maliciosos cifrados",
+      "Inspección TLS selectiva configurable con política de privacidad auditable"
+    ],
+    fallo:[
+      "Inspección de amenazas solo en tráfico no cifrado",
+      "Descifrado universal de TLS sin política selectiva ni auditoría de privacidad",
+      "Sin detección de C2 en DNS-over-HTTPS ni tráfico HTTPS legítimo comprometido"
+    ],
+    vtop:["Zscaler","Palo Alto Prisma Access","Cloudflare One"],
+    votros:["Akamai Enterprise","Cato Networks","Perimeter 81"],
+    rel:4,
+    diferenciador:"Resuelve la paradoja del tráfico cifrado: seguridad sin sacrificar privacidad ni rendimiento a escala."
+  },
+  {
+    id:6,cat:"datos",peso:9,
+    pillars:["Datos","Aplicación"],
+    name:"Protección de datos contextual con AI y control de acceso granular por sensibilidad",
+    sub:"La plataforma clasifica automáticamente los datos por nivel de sensibilidad usando AI, y aplica controles de acceso y DLP dinámicos que se ajustan al contexto de la solicitud — quién accede, desde dónde, con qué dispositivo y para qué propósito — garantizando que el dato más sensible tenga la protección más estricta sin configuración manual de cada regla.",
+    por_que:"Los datos son el activo final que el Zero Trust protege, pero la mayoría de las implementaciones ZT se centran en la capa de red y acceso olvidando que el dato en sí mismo necesita controles dinámicos. La AI que clasifica datos automáticamente y aplica políticas DLP contextuales cierra el ciclo: no es suficiente controlar quién llega al recurso si una vez dentro puede extraer todos los datos sin restricción.",
+    preguntas:[
+      "¿La plataforma clasifica automáticamente los datos por sensibilidad sin etiquetado manual?",
+      "¿Los controles DLP se aplican dinámicamente según el contexto de acceso (dispositivo, ubicación, hora)?",
+      "¿La AI detecta intentos de exfiltración de datos sensibles aunque sean por canales legítimos?",
+      "¿Hay integración nativa con repositorios de datos (SharePoint, S3, databases) para clasificación?"
+    ],
+    madurez:[
+      "Clasificación AI automática de datos sin etiquetado manual previo",
+      "DLP contextual dinámico que varía según el riesgo de la solicitud de acceso",
+      "Detección de exfiltración por canales legítimos: email, cloud storage, SaaS"
+    ],
+    fallo:[
+      "Clasificación de datos 100% manual con etiquetas fijas",
+      "DLP estático con reglas fijas independientes del contexto de acceso",
+      "Sin detección de exfiltración por canales legítimos (solo bloqueo de canales prohibidos)"
+    ],
+    vtop:["Zscaler","Palo Alto Prisma Access","Akamai Enterprise"],
+    votros:["Cloudflare One","Cato Networks","ColorTokens"],
+    rel:4,
+    diferenciador:"Completa el Zero Trust hasta la capa de dato: sin protección contextual del dato, ZT protege el acceso pero no el activo."
+  },
+  {
+    id:7,cat:"dispositivo",peso:8,
+    pillars:["Dispositivo","Red"],
+    name:"Zero Trust para workloads cloud y contenedores con AI de segmentación dinámica",
+    sub:"La plataforma extiende los principios Zero Trust a workloads cloud-native — contenedores, Kubernetes, funciones serverless, microservicios — usando AI para descubrir, clasificar y segmentar dinámicamente las comunicaciones entre workloads sin configuración manual de reglas por cada despliegue.",
+    por_que:"El 70% de las cargas de trabajo en 2026 son efímeras: contenedores que viven minutos, funciones que ejecutan segundos. Las políticas de segmentación estáticas son inútiles en entornos donde la infraestructura cambia constantemente. La AI que detecta nuevos workloads, los clasifica automáticamente y aplica la segmentación correcta desde el primer segundo de vida del contenedor es el único ZT operativamente viable en entornos cloud-native.",
+    preguntas:[
+      "¿La plataforma detecta y segmenta automáticamente nuevos contenedores/workloads al desplegar?",
+      "¿Las políticas ZT se aplican en el primer segundo de vida del workload sin lag de configuración?",
+      "¿Hay integración nativa con Kubernetes (Network Policies, Service Mesh) sin agente adicional?",
+      "¿La AI adapta las políticas de segmentación cuando el workload escala o migra entre nodos?"
+    ],
+    madurez:[
+      "Segmentación automática de nuevos workloads en <5 segundos de despliegue",
+      "Integración nativa con Kubernetes sin agente adicional",
+      "Adaptación dinámica de políticas ante scale-out, migración y terminación de workloads"
+    ],
+    fallo:[
+      "Políticas ZT de workload configuradas manualmente por cada despliegue",
+      "Lag de minutos entre despliegue del workload y aplicación de política de segmentación",
+      "Sin cobertura de funciones serverless y workloads efímeros"
+    ],
+    vtop:["Illumio","Palo Alto Prisma Cloud","ColorTokens"],
+    votros:["Zscaler","Akamai Enterprise","Cato Networks"],
+    rel:4,
+    diferenciador:"El Zero Trust cloud-native real: sin cobertura de workloads efímeros, la arquitectura ZT tiene un punto ciego masivo en el plano de datos moderno."
+  },
+  {
+    id:8,cat:"operaciones",peso:7,
+    pillars:["Red","Aplicación","Identidad"],
+    name:"Visibilidad unificada y análisis AI de toda la superficie Zero Trust en un solo plano",
+    sub:"La plataforma ofrece un plano de control unificado donde la AI correlaciona en tiempo real las señales de todos los pilares ZT — identidad, dispositivo, red, aplicación y datos — para ofrecer una visión holística de riesgo y detectar ataques que se desarrollan a través de múltiples pilares simultáneamente.",
+    por_que:"Las arquitecturas ZT fragmentadas en herramientas de identidad, red y endpoint separadas crean silos de visibilidad que los atacantes explotan deliberadamente: comprometen una identidad, se mueven por la red y acceden a datos sensibles usando acciones que cada herramienta individual considera legítimas. Solo la correlación AI cross-pilar detecta este patrón.",
+    preguntas:[
+      "¿La plataforma ofrece visibilidad unificada de todos los pilares ZT en un solo dashboard?",
+      "¿La AI correlaciona eventos entre pilares para detectar ataques cross-domain?",
+      "¿El plano de control es single-vendor o requiere integración de múltiples productos?",
+      "¿Hay un risk score unificado de la postura ZT de la organización actualizado en tiempo real?"
+    ],
+    madurez:[
+      "Plano de control unificado con correlación AI cross-pilar en tiempo real",
+      "Risk score ZT unificado que agrega señales de identidad, dispositivo, red y datos",
+      "Detección de ataques multi-pilar que ninguna herramienta individual detectaría"
+    ],
+    fallo:[
+      "Visibilidad fragmentada por pilar sin correlación cross-domain",
+      "Plano de control que requiere integración manual de múltiples consolas",
+      "Sin risk score unificado ZT: solo métricas aisladas por pilar"
+    ],
+    vtop:["Palo Alto Prisma Access","Zscaler","Microsoft Entra + Defender"],
+    votros:["Cloudflare One","Cato Networks","Appgate"],
+    rel:4,
+    diferenciador:"Sin visibilidad unificada cross-pilar, el Zero Trust es un conjunto de herramientas, no una arquitectura."
+  },
+  {
+    id:9,cat:"operaciones",peso:8,
+    pillars:["Identidad","Red","Dispositivo"],
+    name:"Detección y respuesta ante amenazas laterales con AI de grafo de confianza",
+    sub:"La plataforma construye un grafo dinámico de confianza entre todas las entidades del entorno — usuarios, dispositivos, workloads, aplicaciones — y usa AI para detectar movimiento lateral, privilege escalation y compromisos de confianza transitiva que evaden las políticas ZT estáticas.",
+    por_que:"El movimiento lateral es la técnica más usada en ataques avanzados y la que el Zero Trust tiene más dificultad para detectar cuando se hace con credenciales legítimas y flujos de comunicación permitidos por política. El grafo de confianza AI detecta cuando la ruta de acceso observada — aunque técnicamente permitida — es anómala para el contexto histórico de esa entidad.",
+    preguntas:[
+      "¿La plataforma construye un grafo de relaciones de confianza entre todas las entidades del entorno?",
+      "¿La AI detecta movimiento lateral que usa flujos de comunicación legítimos pero inusuales?",
+      "¿El sistema detecta privilege escalation a través de confianza transitiva (A confía en B que confía en C)?",
+      "¿Las alertas de movimiento lateral incluyen el path completo de la ruta de ataque?"
+    ],
+    madurez:[
+      "Grafo de confianza dinámico actualizado en tiempo real con cada interacción",
+      "Detección de movimiento lateral mediante flujos legítimos pero anómalos",
+      "Visualización del path completo de movimiento lateral para el analista"
+    ],
+    fallo:[
+      "Sin modelado de relaciones de confianza entre entidades",
+      "Detección de movimiento lateral solo cuando viola políticas explícitas",
+      "Sin detección de privilege escalation a través de confianza transitiva"
+    ],
+    vtop:["Illumio","Zscaler","Silverfort"],
+    votros:["ColorTokens","Appgate","Palo Alto Prisma Access"],
+    rel:4,
+    diferenciador:"Detecta el vector de ataque más sofisticado del ZT: el movimiento lateral que cumple todas las políticas pero es completamente anómalo."
+  },
+  {
+    id:10,cat:"datos",peso:6,
+    pillars:["Identidad","Datos","Aplicación"],
+    name:"Madurez del modelo ZT medible con AI: scoring continuo y roadmap de brechas automatizado",
+    sub:"La plataforma evalúa continuamente la madurez de la implementación Zero Trust de la organización usando AI — alineada con el ZT Maturity Model de CISA — identificando automáticamente las brechas más críticas y generando un roadmap de cierre priorizado por riesgo real.",
+    por_que:"El Zero Trust es un journey, no un producto: las organizaciones en 2026 están en distintas fases de madurez y necesitan saber objetivamente dónde están y qué priorizar. La AI que mide la madurez ZT de forma continua — no solo en una evaluación puntual anual — permite al CISO comunicar el progreso al board con datos objetivos y priorizar las inversiones donde el riesgo reducible es mayor.",
+    preguntas:[
+      "¿La plataforma genera un score de madurez ZT alineado con el ZT Maturity Model de CISA?",
+      "¿El score se actualiza continuamente o solo en evaluaciones periódicas puntuales?",
+      "¿La AI identifica las brechas de mayor riesgo y genera un roadmap de cierre priorizado?",
+      "¿El reporting de madurez es suficiente para presentar al board y auditores externos?"
+    ],
+    madurez:[
+      "Score de madurez ZT continuo alineado con CISA ZT Maturity Model",
+      "Identificación automática de brechas con priorización por riesgo real",
+      "Roadmap de cierre AI-generado con estimación de reducción de riesgo por iniciativa"
+    ],
+    fallo:[
+      "Sin medición objetiva de madurez ZT integrada en la plataforma",
+      "Evaluación de madurez solo como servicio de consultoría puntual",
+      "Roadmap de mejora ZT 100% manual sin priorización por riesgo AI"
+    ],
+    vtop:["Palo Alto Prisma Access","Zscaler","Cloudflare One"],
+    votros:["Akamai Enterprise","Cato Networks","Illumio"],
+    rel:3,
+    diferenciador:"Convierte el Zero Trust de proyecto técnico en programa de negocio medible: el CISO puede demostrar el progreso al board con datos objetivos."
+  }
+];
+
+let activeFilter="all";
+let openId=null;
+
+function bars(n,max=5){return Array(max).fill(0).map((_,i)=>`<div class="bar-s ${i<n?'bon':'boff'}"></div>`).join('')}
+
+function pillarChips(pillars){
+  return pillars.map(p=>{
+    const c=pillarColors[p]||"#888";
+    return `<span class="pillar" style="border-color:${c}20;color:${c};background:${c}12">${p}</span>`;
+  }).join('');
+}
+
+function setF(el,cat){
+  activeFilter=cat; openId=null;
+  document.querySelectorAll('.fpill').forEach(p=>p.classList.remove('on'));
+  el.classList.add('on'); render();
+}
+
+function toggle(id){openId=openId===id?null:id; render();}
+
+function render(){
+  const el=document.getElementById("clist");
+  const list=activeFilter==="all"?criteria:criteria.filter(c=>c.cat===activeFilter);
+  el.innerHTML=list.map(c=>{
+    const cat=cats[c.cat];
+    const isOpen=openId===c.id;
+    return `<div class="crit${isOpen?' open':''}" onclick="toggle(${c.id})">
+      <div class="crit-top">
+        <div class="num" style="background:${cat.bg};color:${cat.dark}">${c.id}</div>
+        <div class="crit-body">
+          <div class="crit-name">${c.name}</div>
+          <div class="crit-sub">${c.sub}</div>
+          <div class="pillar-row">${pillarChips(c.pillars)}</div>
+        </div>
+        <div class="crit-right">
+          <div><span class="peso">${c.peso}%</span><div class="peso-lbl">peso</div></div>
+          <span class="cat-pill" style="background:${cat.bg};color:${cat.dark}">${cat.label}</span>
+        </div>
+      </div>
+      <div class="detail">
+        <div class="dgrid">
+          <div class="dblk">
+            <div class="dlbl">Por qué es crítico</div>
+            <div class="dval">${c.por_que}</div>
+          </div>
+          <div class="dblk">
+            <div class="dlbl">Preguntas de evaluación al vendor</div>
+            ${c.preguntas.map(p=>`<div class="dval" style="margin-bottom:4px">· ${p}</div>`).join('')}
+          </div>
+          <div class="dblk">
+            <div class="dlbl">Señales de madurez AI</div>
+            ${c.madurez.map(s=>`<div class="dval ok">✓ ${s}</div>`).join('')}
+            <div class="dlbl" style="margin-top:8px">Señales de alerta</div>
+            ${c.fallo.map(s=>`<div class="dval ko">✗ ${s}</div>`).join('')}
+          </div>
+          <div class="dblk">
+            <div class="dlbl">Vendors que lideran este criterio</div>
+            <div class="vendors-row">${c.vtop.map(v=>`<span class="vchip top">${v}</span>`).join('')}</div>
+            <div class="dlbl" style="margin-top:8px">Vendors con adopción parcial</div>
+            <div class="vendors-row">${c.votros.map(v=>`<span class="vchip">${v}</span>`).join('')}</div>
+            <div class="dlbl" style="margin-top:10px">Relevancia en RFP</div>
+            <div class="rel-bar">${bars(c.rel)}</div>
+            <div class="diff-badge" style="background:${cat.bg};color:${cat.dark}">${c.diferenciador}</div>
+          </div>
+        </div>
+        <div class="cta" onclick="event.stopPropagation();sendPrompt('Profundiza en el criterio ${c.id} de Zero Trust: ${c.name} — cómo evaluarlo en un RFP, qué demos pedir al vendor y casos de uso reales 2026')">Ver análisis profundo ↗</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+render();
+</script>
+
+
+
+
+

@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(mkdir -p \"c:\\\\Users\\\\DanielAusin\\(CPES\\)\\\\Downloads\\\\VENDORS-AI-MASTER\\\\src\\\\server\")",
+      "Bash(mkdir -p \"c:\\\\Users\\\\DanielAusin\\(CPES\\)\\\\Downloads\\\\VENDORS-AI-MASTER\\\\public\")",
+      "Bash(node node_modules/typescript/bin/tsc --noEmit)",
+      "Bash(timeout 8 node --experimental-sqlite node_modules/ts-node/dist/bin.js --project tsconfig.json src/server/api.ts)",
+      "Bash(node --experimental-sqlite node_modules/ts-node/dist/bin.js --project tsconfig.json src/server/api.ts)",
+      "Bash(curl -s http://localhost:3000/api/status)",
+      "Bash(curl -s http://localhost:3000/api/category-defs)"
+    ]
+  }
+}

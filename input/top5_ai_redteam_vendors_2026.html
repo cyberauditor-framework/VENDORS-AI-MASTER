@@ -1,0 +1,227 @@
+
+<style>
+  .rt-grid { display: grid; grid-template-columns: 1fr; gap: 16px; padding: 1rem 0; }
+  .rt-card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); overflow: hidden; }
+  .rt-header { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  .rt-logo { width: 38px; height: 38px; border-radius: var(--border-radius-md); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 500; flex-shrink: 0; }
+  .rt-title { font-size: 15px; font-weight: 500; color: var(--color-text-primary); margin: 0; }
+  .rt-tag { font-size: 11px; padding: 2px 8px; border-radius: var(--border-radius-md); display: inline-block; margin-top: 3px; }
+  .rt-body { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+  .rt-col { padding: 12px 16px; }
+  .rt-col:first-child { border-right: 0.5px solid var(--color-border-tertiary); }
+  .rt-col-label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+  .rt-item { display: flex; gap: 7px; align-items: flex-start; margin-bottom: 6px; font-size: 13px; color: var(--color-text-secondary); line-height: 1.45; }
+  .rt-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+  .green-label { color: #0F6E56; background: #E1F5EE; }
+  .red-label { color: #993C1D; background: #FAECE7; }
+  .green-dot { background: #1D9E75; }
+  .red-dot { background: #D85A30; }
+  .logo-purple { background: #EEEDFE; color: #534AB7; }
+  .logo-blue { background: #E6F1FB; color: #185FA5; }
+  .logo-teal { background: #E1F5EE; color: #0F6E56; }
+  .logo-amber { background: #FAEEDA; color: #854F0B; }
+  .logo-coral { background: #FAECE7; color: #993C1D; }
+
+/* Benchmark dark-mode normalization */
+:root {
+  color-scheme: dark;
+  --font-sans: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  --color-background-primary: #161b22;
+  --color-background-secondary: #0d1117;
+  --color-border-secondary: #30363d;
+  --color-border-tertiary: #2a313c;
+  --color-text-primary: #e6edf3;
+  --color-text-secondary: #9aa4b2;
+  --border-radius-md: 10px;
+  --border-radius-lg: 14px;
+}
+html, body {
+  background: #0d1117;
+  color: var(--color-text-primary);
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+/* Dark-safe overrides for legacy light badges/tags */
+.b-leader, .bb, .b-deep, .dpill, .dslm-pill, .vchip.top,
+[style*='background:#EEEDFE'], [style*='background: #EEEDFE'] {
+  background: #241a4a !important;
+  color: #e4ddff !important;
+  border-color: #7d6ce0 !important;
+}
+.b-rising, .bi, .b-native,
+[style*='background:#E1F5EE'], [style*='background: #E1F5EE'] {
+  background: #12352e !important;
+  color: #b7f3e1 !important;
+  border-color: #46a08b !important;
+}
+.be, .b-api,
+[style*='background:#E6F1FB'], [style*='background: #E6F1FB'] {
+  background: #132f48 !important;
+  color: #b7ddff !important;
+  border-color: #4f85b5 !important;
+}
+.r1,
+[style*='background:#FAEEDA'], [style*='background: #FAEEDA'] {
+  background: #3a2d0f !important;
+  color: #f0d58d !important;
+  border-color: #a07c2c !important;
+}
+[style*='background:#FAECE7'], [style*='background: #FAECE7'] {
+  background: #3a2015 !important;
+  color: #ffd0bd !important;
+  border-color: #a86145 !important;
+}
+[style*='background:#FBEAF0'], [style*='background: #FBEAF0'] {
+  background: #341d2c !important;
+  color: #f2cfe0 !important;
+  border-color: #9a5f7a !important;
+}
+.ok, [style*='color:#085041'], [style*='color: #085041'] {
+  color: #8fe8cf !important;
+}
+[style*='color:#0C447C'], [style*='color: #0C447C'],
+[style*='color:#185FA5'], [style*='color: #185FA5'] {
+  color: #b7ddff !important;
+}
+[style*='color:#3C3489'], [style*='color: #3C3489'],
+[style*='color:#534AB7'], [style*='color: #534AB7'] {
+  color: #e4ddff !important;
+}
+</style>
+
+<h2 class="sr-only">Comparativa de los 5 principales vendors de IA para Red Team en 2026</h2>
+
+<div class="rt-grid">
+
+  <div class="rt-card">
+    <div class="rt-header">
+      <div class="rt-logo logo-purple">MG</div>
+      <div>
+        <p class="rt-title">Mindgard</p>
+        <span class="rt-tag" style="background:#EEEDFE;color:#534AB7;">IA ofensiva automatizada</span>
+      </div>
+    </div>
+    <div class="rt-body">
+      <div class="rt-col">
+        <div class="rt-col-label green-label">Fortalezas</div>
+        <div class="rt-item"><span class="rt-dot green-dot"></span>Reconocimiento automático de superficie de ataque IA</div>
+        <div class="rt-item"><span class="rt-dot green-dot"></span>Testing continuo en producción, no solo puntual</div>
+        <div class="rt-item"><span class="rt-dot green-dot"></span>Cubre agentes, APIs y workflows LLM</div>
+        <div class="rt-item"><span class="rt-dot green-dot"></span>Runtime defense integrada</div>
+      </div>
+      <div class="rt-col">
+        <div class="rt-col-label red-label">Debilidades</div>
+        <div class="rt-item"><span class="rt-dot red-dot"></span>Curva de aprendizaje en mapeo de prioridades multi-sistema</div>
+        <div class="rt-item"><span class="rt-dot red-dot"></span>Enfocado en IA; menor cobertura de infra clásica</div>
+        <div class="rt-item"><span class="rt-dot red-dot"></span>Precio elevado para PYMEs</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="rt-card">
+    <div class="rt-header">
+      <div class="rt-logo logo-blue">MG</div>
+      <div>
+        <p class="rt-title">Mandiant (Google Cloud)</p>
+        <span class="rt-tag" style="background:#E6F1FB;color:#185FA5;">APT simulation & threat intel</span>
+      </div>
+    </div>
+    <div class="rt-body">
+      <div class="rt-col">
+        <div class="rt-col-label green-label">Fortalezas</div>
+        <div class="rt-item"><span class="rt-dot green-dot"></span>Threat intelligence de primer nivel (ex-gobierno, APT)</div>
+        <div class="rt-item"><span class="rt-dot green-dot"></span>Simulación realista de actores de estado</div>
+        <div class="rt-item"><span class="rt-dot green-dot"></span>Capacidades de respuesta a incidentes integradas</div>
+        <div class="rt-item"><span class="rt-dot green-dot"></span>Fuerte en red team físico + digital</div>
+      </div>
+      <div class="rt-col">
+        <div class="rt-col-label red-label">Debilidades</div>
+        <div class="rt-item"><span class="rt-dot red-dot"></span>Muy costoso; orientado a grandes empresas</div>
+        <div class="rt-item"><span class="rt-dot red-dot"></span>Menor especialización en LLMs y AI security</div>
+        <div class="rt-item"><span class="rt-dot red-dot"></span>Tiempos de entrega largos para engagements</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="rt-card">
+    <div class="rt-header">
+      <div class="rt-logo logo-teal">CA</div>
+      <div>
+        <p class="rt-title">CalypsoAI</p>
+        <span class="rt-tag" style="background:#E1F5EE;color:#0F6E56;">AI model red teaming</span>
+      </div>
+    </div>
+    <div class="rt-body">
+      <div class="rt-col">
+        <div class="rt-col-label green-label">Fortalezas</div>
+        <div class="rt-item"><span class="rt-dot green-dot"></span>Plataforma Inference Red-Team automatizada</div>
+        <div class="rt-item"><span class="rt-dot green-dot"></span>Security Leaderboard público de modelos de IA</div>
+        <div class="rt-item"><span class="rt-dot green-dot"></span>Especialización profunda en LLMs y modelos GenAI</div>
+        <div class="rt-item"><span class="rt-dot green-dot"></span>Excelente para cumplimiento y auditoría de modelos</div>
+      </div>
+      <div class="rt-col">
+        <div class="rt-col-label red-label">Debilidades</div>
+        <div class="rt-item"><span class="rt-dot red-dot"></span>Menor madurez en red team de infraestructura tradicional</div>
+        <div class="rt-item"><span class="rt-dot red-dot"></span>Ecosistema de integraciones más limitado</div>
+        <div class="rt-item"><span class="rt-dot red-dot"></span>Presencia geográfica aún en expansión</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="rt-card">
+    <div class="rt-header">
+      <div class="rt-logo logo-amber">PA</div>
+      <div>
+        <p class="rt-title">Palo Alto Networks (Prisma AIRS)</p>
+        <span class="rt-tag" style="background:#FAEEDA;color:#854F0B;">Plataforma empresarial integral</span>
+      </div>
+    </div>
+    <div class="rt-body">
+      <div class="rt-col">
+        <div class="rt-col-label green-label">Fortalezas</div>
+        <div class="rt-item"><span class="rt-dot green-dot"></span>Red team + runtime security en una sola plataforma</div>
+        <div class="rt-item"><span class="rt-dot green-dot"></span>Cubre prompt injection, data exposure y agentes IA</div>
+        <div class="rt-item"><span class="rt-dot green-dot"></span>Amplio ecosistema de integraciones empresariales</div>
+        <div class="rt-item"><span class="rt-dot green-dot"></span>Monitoreo en tiempo real post-test</div>
+      </div>
+      <div class="rt-col">
+        <div class="rt-col-label red-label">Debilidades</div>
+        <div class="rt-item"><span class="rt-dot red-dot"></span>Despliegue complejo, requiere expertise en su ecosistema</div>
+        <div class="rt-item"><span class="rt-dot red-dot"></span>Licenciamiento costoso y difícil de modularizar</div>
+        <div class="rt-item"><span class="rt-dot red-dot"></span>Puede ser excesivo para organizaciones más pequeñas</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="rt-card">
+    <div class="rt-header">
+      <div class="rt-logo logo-coral">LA</div>
+      <div>
+        <p class="rt-title">Lakera</p>
+        <span class="rt-tag" style="background:#FAECE7;color:#993C1D;">GenAI security lifecycle</span>
+      </div>
+    </div>
+    <div class="rt-body">
+      <div class="rt-col">
+        <div class="rt-col-label green-label">Fortalezas</div>
+        <div class="rt-item"><span class="rt-dot green-dot"></span>Doble enfoque: Lakera Red (dev) + Lakera Guard (runtime)</div>
+        <div class="rt-item"><span class="rt-dot green-dot"></span>Contribuidor activo del OWASP Top 10 para LLMs 2026</div>
+        <div class="rt-item"><span class="rt-dot green-dot"></span>AI Vulnerability Scoring System propio</div>
+        <div class="rt-item"><span class="rt-dot green-dot"></span>Protección robusta contra prompt injection en producción</div>
+      </div>
+      <div class="rt-col">
+        <div class="rt-col-label red-label">Debilidades</div>
+        <div class="rt-item"><span class="rt-dot red-dot"></span>Alcance limitado a sistemas GenAI; no cubre red team clásico</div>
+        <div class="rt-item"><span class="rt-dot red-dot"></span>Vendor relativamente joven con menos referencias enterprise</div>
+        <div class="rt-item"><span class="rt-dot red-dot"></span>Menor soporte para entornos on-premise cerrados</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+
+
+
+

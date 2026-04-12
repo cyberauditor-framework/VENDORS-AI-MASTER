@@ -1,0 +1,326 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); }
+.wrap { padding: 1rem 0; }
+.header { margin-bottom: 1.5rem; }
+.header h2 { font-size: 18px; font-weight: 500; color: var(--color-text-primary); }
+.header p { font-size: 13px; color: var(--color-text-secondary); margin-top: 4px; }
+.filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1.5rem; }
+.pill { font-size: 12px; padding: 5px 12px; border-radius: 999px; border: 0.5px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-secondary); cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+.pill:hover { background: var(--color-background-secondary); }
+.pill.active { background: #534AB7; color: #EEEDFE; border-color: #534AB7; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+.cat-card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); overflow: hidden; }
+.cat-header { padding: 12px 16px; display: flex; align-items: center; gap: 10px; }
+.cat-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
+.cat-title { font-size: 14px; font-weight: 500; color: var(--color-text-primary); }
+.cat-sub { font-size: 11px; color: var(--color-text-secondary); margin-top: 1px; }
+.vendor-list { padding: 0 12px 12px; }
+.vendor { display: flex; align-items: center; gap: 10px; padding: 6px 4px; border-top: 0.5px solid var(--color-border-tertiary); }
+.rank { font-size: 11px; font-weight: 500; width: 18px; text-align: center; flex-shrink: 0; }
+.vendor-name { font-size: 13px; color: var(--color-text-primary); flex: 1; }
+.badge { font-size: 10px; padding: 2px 8px; border-radius: 999px; flex-shrink: 0; }
+.b-leader { background: #EEEDFE; color: #3C3489; }
+.b-rising { background: #E1F5EE; color: #085041; }
+.b-native { background: #E6F1FB; color: #0C447C; }
+.r1 { color: #BA7517; }
+.r2 { color: #888780; }
+.r3 { color: #3C3489; }
+.rn { color: var(--color-text-secondary); }
+.search-wrap { margin-bottom: 1rem; }
+.search-wrap input { width: 100%; padding: 8px 12px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-primary); font-size: 13px; font-family: var(--font-sans); }
+.search-wrap input:focus { outline: none; border-color: #534AB7; }
+.stats { display: flex; gap: 16px; margin-bottom: 1.5rem; flex-wrap: wrap; }
+.stat { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 10px 16px; flex: 1; min-width: 100px; }
+.stat-n { font-size: 22px; font-weight: 500; color: var(--color-text-primary); }
+.stat-l { font-size: 11px; color: var(--color-text-secondary); margin-top: 2px; }
+.no-res { text-align: center; color: var(--color-text-secondary); font-size: 13px; padding: 2rem; }
+
+/* Benchmark dark-mode normalization */
+:root {
+  color-scheme: dark;
+  --font-sans: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  --color-background-primary: #161b22;
+  --color-background-secondary: #0d1117;
+  --color-border-secondary: #30363d;
+  --color-border-tertiary: #2a313c;
+  --color-text-primary: #e6edf3;
+  --color-text-secondary: #9aa4b2;
+  --border-radius-md: 10px;
+  --border-radius-lg: 14px;
+}
+html, body {
+  background: #0d1117;
+  color: var(--color-text-primary);
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+/* Dark-safe overrides for legacy light badges/tags */
+.b-leader, .bb, .b-deep, .dpill, .dslm-pill, .vchip.top,
+[style*='background:#EEEDFE'], [style*='background: #EEEDFE'] {
+  background: #241a4a !important;
+  color: #e4ddff !important;
+  border-color: #7d6ce0 !important;
+}
+.b-rising, .bi, .b-native,
+[style*='background:#E1F5EE'], [style*='background: #E1F5EE'] {
+  background: #12352e !important;
+  color: #b7f3e1 !important;
+  border-color: #46a08b !important;
+}
+.be, .b-api,
+[style*='background:#E6F1FB'], [style*='background: #E6F1FB'] {
+  background: #132f48 !important;
+  color: #b7ddff !important;
+  border-color: #4f85b5 !important;
+}
+.r1,
+[style*='background:#FAEEDA'], [style*='background: #FAEEDA'] {
+  background: #3a2d0f !important;
+  color: #f0d58d !important;
+  border-color: #a07c2c !important;
+}
+[style*='background:#FAECE7'], [style*='background: #FAECE7'] {
+  background: #3a2015 !important;
+  color: #ffd0bd !important;
+  border-color: #a86145 !important;
+}
+[style*='background:#FBEAF0'], [style*='background: #FBEAF0'] {
+  background: #341d2c !important;
+  color: #f2cfe0 !important;
+  border-color: #9a5f7a !important;
+}
+.ok, [style*='color:#085041'], [style*='color: #085041'] {
+  color: #8fe8cf !important;
+}
+[style*='color:#0C447C'], [style*='color: #0C447C'],
+[style*='color:#185FA5'], [style*='color: #185FA5'] {
+  color: #b7ddff !important;
+}
+[style*='color:#3C3489'], [style*='color: #3C3489'],
+[style*='color:#534AB7'], [style*='color: #534AB7'] {
+  color: #e4ddff !important;
+}
+</style>
+
+<div class="wrap">
+<h2 class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;">Top 10 vendors de ciberseguridad nativos en IA por categoría, 2026</h2>
+<div class="header">
+  <h2>Top 10 vendors AI-native en ciberseguridad — 2026</h2>
+  <p>Ranking por categoría. Badge: <span style="background:#EEEDFE;color:#3C3489;font-size:10px;padding:2px 7px;border-radius:999px;">Líder</span> = consolidado &nbsp;<span style="background:#E1F5EE;color:#085041;font-size:10px;padding:2px 7px;border-radius:999px;">Rising</span> = emergente &nbsp;<span style="background:#E6F1FB;color:#0C447C;font-size:10px;padding:2px 7px;border-radius:999px;">Native AI</span> = 100% IA</p>
+</div>
+
+<div class="stats">
+  <div class="stat"><div class="stat-n">12</div><div class="stat-l">Categorías</div></div>
+  <div class="stat"><div class="stat-n">120</div><div class="stat-l">Vendors rankeados</div></div>
+  <div class="stat"><div class="stat-n">2026</div><div class="stat-l">Edición</div></div>
+</div>
+
+<div class="search-wrap">
+  <input type="text" id="search" placeholder="Buscar vendor o categoría..." oninput="filterAll()">
+</div>
+
+<div class="filters" id="filters"></div>
+<div class="grid" id="grid"></div>
+</div>
+
+<script>
+const data = [
+  {
+    id:"siem", cat:"SIEM", icon:"🛡️",
+    color:"purple",
+    sub:"Security Information & Event Management",
+    vendors:[
+      {n:"Microsoft Sentinel",b:"leader"},{n:"Exabeam",b:"native"},{n:"Securonix",b:"native"},
+      {n:"IBM QRadar (AI Suite)",b:"leader"},{n:"Elastic Security",b:"rising"},{n:"Anvilogic",b:"native"},
+      {n:"Devo",b:"rising"},{n:"LogRhythm Axon",b:"leader"},{n:"Stellar Cyber",b:"native"},{n:"Gurucul",b:"native"}
+    ]
+  },
+  {
+    id:"edr", cat:"EDR / XDR", icon:"🔍",
+    color:"blue",
+    sub:"Endpoint & Extended Detection & Response",
+    vendors:[
+      {n:"CrowdStrike Falcon",b:"leader"},{n:"SentinelOne",b:"native"},{n:"Microsoft Defender XDR",b:"leader"},
+      {n:"Palo Alto Cortex XDR",b:"leader"},{n:"Cybereason",b:"rising"},{n:"Vectra AI",b:"native"},
+      {n:"Darktrace",b:"native"},{n:"Trend Micro One",b:"leader"},{n:"Trellix XDR",b:"rising"},{n:"Huntress",b:"rising"}
+    ]
+  },
+  {
+    id:"soar", cat:"SOAR", icon:"⚡",
+    color:"amber",
+    sub:"Security Orchestration, Automation & Response",
+    vendors:[
+      {n:"Palo Alto XSOAR",b:"leader"},{n:"Splunk SOAR",b:"leader"},{n:"Google SecOps (Chronicle)",b:"native"},
+      {n:"Torq",b:"native"},{n:"Tines",b:"rising"},{n:"Swimlane",b:"rising"},
+      {n:"D3 Security",b:"rising"},{n:"Intezer",b:"native"},{n:"Siemplify (Google)",b:"leader"},{n:"Resolve",b:"rising"}
+    ]
+  },
+  {
+    id:"iam", cat:"IAM / PAM", icon:"🔐",
+    color:"teal",
+    sub:"Identity & Privileged Access Management",
+    vendors:[
+      {n:"Okta (AI Identity)",b:"leader"},{n:"CyberArk",b:"leader"},{n:"Microsoft Entra ID",b:"leader"},
+      {n:"Delinea",b:"rising"},{n:"BeyondTrust",b:"leader"},{n:"Saviynt",b:"rising"},
+      {n:"Silverfort",b:"native"},{n:"Opal Security",b:"native"},{n:"Strata Identity",b:"rising"},{n:"Trustle",b:"native"}
+    ]
+  },
+  {
+    id:"zt", cat:"Zero Trust", icon:"🚫",
+    color:"coral",
+    sub:"Zero Trust Network Architecture",
+    vendors:[
+      {n:"Zscaler",b:"leader"},{n:"Cloudflare One",b:"leader"},{n:"Palo Alto Prisma Access",b:"leader"},
+      {n:"Illumio",b:"rising"},{n:"Appgate",b:"rising"},{n:"Akamai Enterprise",b:"leader"},
+      {n:"Perimeter 81 (NordLayer)",b:"rising"},{n:"Axis Security",b:"native"},{n:"ColorTokens",b:"native"},{n:"Banyan Security",b:"rising"}
+    ]
+  },
+  {
+    id:"ti", cat:"Threat Intelligence", icon:"🌐",
+    color:"blue",
+    sub:"Cyber Threat Intelligence Platforms",
+    vendors:[
+      {n:"Recorded Future",b:"leader"},{n:"Mandiant (Google)",b:"leader"},{n:"CrowdStrike Intel",b:"leader"},
+      {n:"MISP + AI layer",b:"rising"},{n:"Flashpoint",b:"rising"},{n:"Intel471",b:"rising"},
+      {n:"Cyble",b:"native"},{n:"Flare",b:"native"},{n:"SOCRadar",b:"native"},{n:"Cybersixgill",b:"rising"}
+    ]
+  },
+  {
+    id:"aisec", cat:"AI Security", icon:"🤖",
+    color:"purple",
+    sub:"Seguridad para sistemas y modelos de IA",
+    vendors:[
+      {n:"HiddenLayer",b:"native"},{n:"Protect AI",b:"native"},{n:"Robust Intelligence (Cisco)",b:"native"},
+      {n:"CalypsoAI",b:"native"},{n:"Lakera",b:"native"},{n:"Wiz AI-SPM",b:"rising"},
+      {n:"Adversa AI",b:"native"},{n:"Cranium",b:"native"},{n:"Giskard",b:"rising"},{n:"ModelArmor (Google)",b:"rising"}
+    ]
+  },
+  {
+    id:"cloud", cat:"Cloud Security", icon:"☁️",
+    color:"teal",
+    sub:"CSPM / CWPP / CNAPP",
+    vendors:[
+      {n:"Wiz",b:"native"},{n:"Palo Alto Prisma Cloud",b:"leader"},{n:"Orca Security",b:"native"},
+      {n:"Lacework",b:"native"},{n:"Sysdig",b:"rising"},{n:"Aqua Security",b:"rising"},
+      {n:"Ermetic (Tenable)",b:"rising"},{n:"Dig Security (Palo Alto)",b:"rising"},{n:"Sonrai Security",b:"rising"},{n:"Cyera",b:"native"}
+    ]
+  },
+  {
+    id:"red", cat:"Red Team", icon:"🔴",
+    color:"coral",
+    sub:"Adversarial Simulation & Attack Emulation",
+    vendors:[
+      {n:"Picus Security",b:"native"},{n:"AttackIQ",b:"rising"},{n:"Cymulate",b:"rising"},
+      {n:"XM Cyber",b:"native"},{n:"SafeBreach",b:"rising"},{n:"Verodin (Mandiant)",b:"leader"},
+      {n:"Horizon3.ai (NodeZero)",b:"native"},{n:"Randori (IBM)",b:"native"},{n:"Pentera",b:"native"},{n:"Bishop Fox (Cosmos)",b:"rising"}
+    ]
+  },
+  {
+    id:"vapt", cat:"VAPT", icon:"🧪",
+    color:"amber",
+    sub:"Vulnerability Assessment & Penetration Testing",
+    vendors:[
+      {n:"Tenable One",b:"leader"},{n:"Qualys TruRisk",b:"leader"},{n:"Rapid7 InsightVM",b:"leader"},
+      {n:"Detectify",b:"rising"},{n:"CyCognito",b:"native"},{n:"Hadrian",b:"native"},
+      {n:"Intruder",b:"rising"},{n:"ImmuniWeb",b:"native"},{n:"Cobalt (AI Pentest)",b:"rising"},{n:"Synack Red Team",b:"rising"}
+    ]
+  },
+  {
+    id:"grc", cat:"GRC", icon:"📋",
+    color:"green",
+    sub:"Governance, Risk & Compliance",
+    vendors:[
+      {n:"ServiceNow GRC",b:"leader"},{n:"OneTrust",b:"leader"},{n:"Archer (RSA)",b:"leader"},
+      {n:"Vanta",b:"native"},{n:"Drata",b:"native"},{n:"Hyperproof",b:"rising"},
+      {n:"LogicGate",b:"rising"},{n:"Scrut Automation",b:"native"},{n:"Thoropass",b:"rising"},{n:"Secureframe",b:"rising"}
+    ]
+  },
+  {
+    id:"fw", cat:"Firewall", icon:"🔥",
+    color:"red",
+    sub:"Next-Gen Firewall & Network Security",
+    vendors:[
+      {n:"Palo Alto NGFW (AI-powered)",b:"leader"},{n:"Fortinet FortiGate",b:"leader"},{n:"Check Point Quantum",b:"leader"},
+      {n:"Cisco Firepower",b:"leader"},{n:"Sophos XGS",b:"rising"},{n:"Juniper SRX (AI)",b:"rising"},
+      {n:"WatchGuard Firebox AI",b:"rising"},{n:"Versa SASE",b:"rising"},{n:"Cato Networks",b:"native"},{n:"Sangfor NGAF",b:"rising"}
+    ]
+  }
+];
+
+const colorMap = {
+  purple:["#EEEDFE","#534AB7"],
+  blue:["#E6F1FB","#185FA5"],
+  amber:["#FAEEDA","#BA7517"],
+  teal:["#E1F5EE","#0F6E56"],
+  coral:["#FAECE7","#993C1D"],
+  green:["#EAF3DE","#3B6D11"],
+  red:["#FCEBEB","#A32D2D"]
+};
+
+let activeFilter = "all";
+let searchTerm = "";
+
+function filterAll() {
+  searchTerm = document.getElementById("search").value.toLowerCase();
+  render();
+}
+
+function setFilter(f) {
+  activeFilter = f;
+  document.querySelectorAll(".pill").forEach(p => p.classList.toggle("active", p.dataset.f === f));
+  render();
+}
+
+function render() {
+  const grid = document.getElementById("grid");
+  let cats = data;
+  if (activeFilter !== "all") cats = cats.filter(c => c.id === activeFilter);
+  if (searchTerm) {
+    cats = cats.map(c => {
+      const matchCat = c.cat.toLowerCase().includes(searchTerm);
+      const vendors = matchCat ? c.vendors : c.vendors.filter(v => v.n.toLowerCase().includes(searchTerm));
+      return {...c, vendors};
+    }).filter(c => c.vendors.length > 0);
+  }
+  if (!cats.length) { grid.innerHTML = '<div class="no-res">Sin resultados</div>'; return; }
+  grid.innerHTML = cats.map(c => {
+    const [bg, fg] = colorMap[c.color] || colorMap.purple;
+    return `<div class="cat-card">
+      <div class="cat-header" style="background:${bg}20; border-bottom:0.5px solid var(--color-border-tertiary);">
+        <div class="cat-icon" style="background:${bg}; color:${fg};">${c.icon}</div>
+        <div><div class="cat-title">${c.cat}</div><div class="cat-sub">${c.sub}</div></div>
+      </div>
+      <div class="vendor-list">
+        ${c.vendors.map((v,i) => {
+          const rankClass = i===0?'r1':i===1?'r2':i===2?'r3':'rn';
+          const rankStr = i===0?'①':i===1?'②':i===2?'③':`${i+1}`;
+          const badgeLabel = v.b==='leader'?'Líder':v.b==='rising'?'Rising':'Native AI';
+          const badgeClass = v.b==='leader'?'b-leader':v.b==='rising'?'b-rising':'b-native';
+          return `<div class="vendor">
+            <span class="rank ${rankClass}">${rankStr}</span>
+            <span class="vendor-name">${v.n}</span>
+            <span class="badge ${badgeClass}">${badgeLabel}</span>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function buildFilters() {
+  const wrap = document.getElementById("filters");
+  const items = [{id:"all",label:"Todas las categorías"},...data.map(d=>({id:d.id,label:d.cat}))];
+  wrap.innerHTML = items.map(i=>`<button class="pill${i.id==='all'?' active':''}" data-f="${i.id}" onclick="setFilter('${i.id}')">${i.label}</button>`).join('');
+}
+
+buildFilters();
+render();
+</script>
+
+
+
+
+

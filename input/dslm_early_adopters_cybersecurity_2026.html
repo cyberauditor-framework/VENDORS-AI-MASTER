@@ -1,0 +1,259 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+.wrap{padding:1rem 0;font-family:var(--font-sans)}
+h2.sr-only{position:absolute;width:1px;height:1px;overflow:hidden}
+.top-bar{margin-bottom:1.5rem}
+.top-bar h3{font-size:18px;font-weight:500;color:var(--color-text-primary)}
+.top-bar p{font-size:13px;color:var(--color-text-secondary);margin-top:4px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.5rem}
+.stat{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:10px 14px}
+.stat-n{font-size:20px;font-weight:500;color:var(--color-text-primary)}
+.stat-l{font-size:11px;color:var(--color-text-secondary);margin-top:2px}
+.layer-section{margin-bottom:1.5rem}
+.layer-label{font-size:11px;font-weight:500;letter-spacing:.06em;color:var(--color-text-secondary);margin-bottom:8px;text-transform:uppercase}
+.dslm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:12px}
+.dslm-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:12px 14px;cursor:pointer;transition:border-color .15s}
+.dslm-card:hover,.dslm-card.active{border-color:#7F77DD}
+.dslm-card.active{background:#EEEDFE20}
+.dslm-name{font-size:13px;font-weight:500;color:var(--color-text-primary)}
+.dslm-owner{font-size:11px;color:var(--color-text-secondary);margin-top:2px}
+.dslm-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+.tag{font-size:10px;padding:2px 7px;border-radius:999px;border:0.5px solid var(--color-border-tertiary);color:var(--color-text-secondary)}
+.connector-area{display:flex;align-items:center;justify-content:center;padding:8px 0;color:var(--color-text-secondary);font-size:12px;gap:6px}
+.adopter-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+.adopter-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:12px 14px;transition:all .2s}
+.adopter-card.highlight{border-color:#534AB7;background:#EEEDFE15}
+.adopter-card.dimmed{opacity:.3}
+.adopter-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.adopter-icon{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.adopter-name{font-size:13px;font-weight:500;color:var(--color-text-primary)}
+.adopter-cat{font-size:11px;color:var(--color-text-secondary)}
+.adopter-detail{font-size:11px;color:var(--color-text-secondary);line-height:1.5;margin-top:4px}
+.adopter-model{display:inline-block;font-size:10px;padding:2px 8px;border-radius:999px;margin-top:6px}
+.maturity-bar{display:flex;gap:2px;margin-top:8px}
+.bar-seg{height:4px;flex:1;border-radius:2px}
+.bar-on{background:#534AB7}
+.bar-off{background:var(--color-border-tertiary)}
+.maturity-label{font-size:10px;color:var(--color-text-secondary);margin-top:3px}
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:1.5rem}
+.leg-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--color-text-secondary)}
+.leg-dot{width:10px;height:10px;border-radius:50%}
+.reset-btn{font-size:12px;padding:4px 12px;border-radius:999px;border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-secondary);cursor:pointer;margin-bottom:1rem}
+.reset-btn:hover{background:var(--color-background-secondary)}
+
+/* Benchmark dark-mode normalization */
+:root {
+  color-scheme: dark;
+  --font-sans: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  --color-background-primary: #161b22;
+  --color-background-secondary: #0d1117;
+  --color-border-secondary: #30363d;
+  --color-border-tertiary: #2a313c;
+  --color-text-primary: #e6edf3;
+  --color-text-secondary: #9aa4b2;
+  --border-radius-md: 10px;
+  --border-radius-lg: 14px;
+}
+html, body {
+  background: #0d1117;
+  color: var(--color-text-primary);
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+/* Dark-safe overrides for legacy light badges/tags */
+.b-leader, .bb, .b-deep, .dpill, .dslm-pill, .vchip.top,
+[style*='background:#EEEDFE'], [style*='background: #EEEDFE'] {
+  background: #241a4a !important;
+  color: #e4ddff !important;
+  border-color: #7d6ce0 !important;
+}
+.b-rising, .bi, .b-native,
+[style*='background:#E1F5EE'], [style*='background: #E1F5EE'] {
+  background: #12352e !important;
+  color: #b7f3e1 !important;
+  border-color: #46a08b !important;
+}
+.be, .b-api,
+[style*='background:#E6F1FB'], [style*='background: #E6F1FB'] {
+  background: #132f48 !important;
+  color: #b7ddff !important;
+  border-color: #4f85b5 !important;
+}
+.r1,
+[style*='background:#FAEEDA'], [style*='background: #FAEEDA'] {
+  background: #3a2d0f !important;
+  color: #f0d58d !important;
+  border-color: #a07c2c !important;
+}
+[style*='background:#FAECE7'], [style*='background: #FAECE7'] {
+  background: #3a2015 !important;
+  color: #ffd0bd !important;
+  border-color: #a86145 !important;
+}
+[style*='background:#FBEAF0'], [style*='background: #FBEAF0'] {
+  background: #341d2c !important;
+  color: #f2cfe0 !important;
+  border-color: #9a5f7a !important;
+}
+.ok, [style*='color:#085041'], [style*='color: #085041'] {
+  color: #8fe8cf !important;
+}
+[style*='color:#0C447C'], [style*='color: #0C447C'],
+[style*='color:#185FA5'], [style*='color: #185FA5'] {
+  color: #b7ddff !important;
+}
+[style*='color:#3C3489'], [style*='color: #3C3489'],
+[style*='color:#534AB7'], [style*='color: #534AB7'] {
+  color: #e4ddff !important;
+}
+</style>
+
+<div class="wrap">
+<h2 class="sr-only">Mapa de DSLMs a early adopters en ciberseguridad 2026</h2>
+
+<div class="top-bar">
+  <h3>De DSLM a early adopters — ciberseguridad 2026</h3>
+  <p>Selecciona un modelo para ver qué vendors lo adoptan o integran. DSLM = Domain-Specific Language Model.</p>
+</div>
+
+<div class="stats">
+  <div class="stat"><div class="stat-n">11</div><div class="stat-l">DSLMs activos</div></div>
+  <div class="stat"><div class="stat-n">28</div><div class="stat-l">Early adopters</div></div>
+  <div class="stat"><div class="stat-n">6</div><div class="stat-l">Dominios cubiertos</div></div>
+  <div class="stat"><div class="stat-n">2026</div><div class="stat-l">Edición</div></div>
+</div>
+
+<div class="legend">
+  <div class="leg-item"><div class="leg-dot" style="background:#534AB7"></div>Nativo / desarrollador del modelo</div>
+  <div class="leg-item"><div class="leg-dot" style="background:#1D9E75"></div>Integración profunda (fine-tune)</div>
+  <div class="leg-item"><div class="leg-dot" style="background:#378ADD"></div>Adopción via API</div>
+  <div class="leg-item"><div class="leg-dot" style="background:#EF9F27"></div>Early access / beta</div>
+</div>
+
+<div class="layer-section">
+  <div class="layer-label">Capa 1 — Modelos de dominio (click para filtrar)</div>
+  <div class="dslm-grid" id="dslm-grid"></div>
+</div>
+
+<div class="connector-area" id="connector">
+  <svg width="20" height="20" viewBox="0 0 20 20"><path d="M10 2v14M5 12l5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  <span>Selecciona un DSLM para ver sus early adopters</span>
+</div>
+
+<div class="layer-section">
+  <div class="layer-label">Capa 2 — Early adopter vendors</div>
+  <button class="reset-btn" onclick="reset()">Mostrar todos</button>
+  <div class="adopter-grid" id="adopter-grid"></div>
+</div>
+</div>
+
+<script>
+const dslms = [
+  {id:"secpalm",name:"Sec-PaLM / Gemini Sec",owner:"Google / DeepMind",domains:["TI","SIEM","SOAR"],desc:"LLM fine-tuned en inteligencia de amenazas y análisis de malware"},
+  {id:"seccopilot",name:"Security Copilot LLM",owner:"Microsoft",domains:["SIEM","IAM","Cloud"],desc:"Modelo GPT-4 turbo fine-tuned en datos de seguridad de Microsoft"},
+  {id:"charlotte",name:"Charlotte AI",owner:"CrowdStrike",domains:["EDR","TI","RedTeam"],desc:"DSLM propietario entrenado en petabytes de telemetría adversarial"},
+  {id:"falconllm",name:"Falcon LLM (TII)",owner:"Technology Innovation Inst.",domains:["GRC","SOAR","VAPT"],desc:"LLM open-weight adaptable para compliance y análisis de riesgo"},
+  {id:"llmsec",name:"LLM-Security (Anthropic/Claude)",owner:"Anthropic",domains:["AISecure","VAPT","GRC"],desc:"Claude adaptado a contextos de seguridad y análisis de código"},
+  {id:"codeshield",name:"CodeShield AI",owner:"Meta / community",domains:["VAPT","AISecure","RedTeam"],desc:"DSLM para detección de vulnerabilidades en código fuente"},
+  {id:"osiris",name:"Osiris (IBM)",owner:"IBM Research",domains:["SIEM","GRC","IAM"],desc:"Modelo especializado en detección de anomalías y cumplimiento"},
+  {id:"armis",name:"Armis AI Engine",owner:"Armis",domains:["ZeroTrust","Cloud","IAM"],desc:"DSLM para segmentación de activos y confianza cero en OT/IoT"},
+  {id:"secbert",name:"SecBERT / SecRoBERTa",owner:"Open source (UCSB)",domains:["TI","SIEM","VAPT"],desc:"Transformers pre-entrenados en CVEs, NVD y reportes de amenazas"},
+  {id:"penllm",name:"PentestGPT / HackerLLM",owner:"Community / Hackerone",domains:["RedTeam","VAPT"],desc:"LLM fine-tuned en writeups y técnicas de pentesting ofensivo"},
+  {id:"crystalball",name:"CrystalBall (Palo Alto)",owner:"Palo Alto Networks",domains:["Firewall","ZeroTrust","Cloud"],desc:"DSLM para predicción de amenazas y análisis de tráfico de red"}
+];
+
+const adopters = [
+  {name:"Google SecOps",cat:"SIEM / SOAR",icon:"🟦",models:["secpalm"],type:"native",detail:"Chronicle + Sec-PaLM para correlación automática de alertas y resumen de incidentes",maturity:5},
+  {name:"Microsoft Sentinel",cat:"SIEM",icon:"🟪",models:["seccopilot"],type:"native",detail:"Security Copilot integrado: natural language queries sobre logs y análisis de ataques",maturity:5},
+  {name:"CrowdStrike Falcon",cat:"EDR / XDR",icon:"🔴",models:["charlotte"],type:"native",detail:"Charlotte AI genera summaries de adversarios y automatiza triage de alertas",maturity:5},
+  {name:"SentinelOne Purple AI",cat:"EDR / XDR",icon:"🟣",models:["llmsec","secbert"],type:"deep",detail:"Purple AI usa Claude + SecBERT para hunting autónomo y remediación contextual",maturity:4},
+  {name:"Palo Alto XSIAM",cat:"SIEM / SOAR",icon:"🟠",models:["crystalball","secpalm"],type:"deep",detail:"Precision AI combina CrystalBall con Sec-PaLM para detección predictiva",maturity:5},
+  {name:"Darktrace",cat:"EDR / ZT",icon:"🔵",models:["armis","secbert"],type:"deep",detail:"ActiveAI Security Platform usa transformers propios + Armis para detección de desviaciones",maturity:4},
+  {name:"Vectra AI",cat:"XDR",icon:"🟤",models:["secbert","llmsec"],type:"api",detail:"Attack Signal Intelligence combina embeddings de SecBERT con LLM para explicabilidad",maturity:4},
+  {name:"IBM QRadar AI",cat:"SIEM",icon:"⬛",models:["osiris","falconllm"],type:"deep",detail:"Osiris integrado nativamente; Falcon LLM para generación de playbooks GRC",maturity:4},
+  {name:"Recorded Future",cat:"Threat Intel",icon:"🟫",models:["secpalm","secbert"],type:"deep",detail:"AI Insights usa Sec-PaLM para síntesis de reportes y SecBERT para NER de actores",maturity:5},
+  {name:"Flashpoint",cat:"Threat Intel",icon:"🔶",models:["secbert","llmsec"],type:"api",detail:"Ignite platform: SecBERT para extracción de IOCs en dark web + Claude para resúmenes",maturity:3},
+  {name:"Cyble",cat:"Threat Intel",icon:"🔷",models:["secpalm","penllm"],type:"api",detail:"Vision AI usa Sec-PaLM para OSINT automatizado y PentestGPT para análisis de TTPs",maturity:3},
+  {name:"HiddenLayer",cat:"AI Security",icon:"🟥",models:["llmsec","codeshield"],type:"deep",detail:"Protege modelos ML usando Claude como motor de análisis adversarial y CodeShield para MLOps",maturity:4},
+  {name:"Protect AI",cat:"AI Security",icon:"🟩",models:["codeshield","llmsec"],type:"native",detail:"Guardian usa CodeShield para escaneo de pipelines ML y Claude para recomendaciones de remediación",maturity:4},
+  {name:"Lakera",cat:"AI Security",icon:"🔸",models:["llmsec","secbert"],type:"deep",detail:"Gandalf usa Claude fine-tuned + SecBERT para detección de prompt injection en tiempo real",maturity:4},
+  {name:"Wiz",cat:"Cloud Security",icon:"🌊",models:["seccopilot","crystalball"],type:"api",detail:"AI-SPM integra Security Copilot para análisis de configuraciones y CrystalBall para predicción",maturity:4},
+  {name:"Orca Security",cat:"Cloud Security",icon:"🐋",models:["secpalm","secbert"],type:"api",detail:"SideScanning AI usa Sec-PaLM para contextualizar hallazgos y SecBERT para CVE enrichment",maturity:3},
+  {name:"Lacework",cat:"Cloud Security",icon:"🏔️",models:["osiris","armis"],type:"deep",detail:"Polygraph AI combina Osiris para detección de comportamiento y Armis para activos cloud",maturity:4},
+  {name:"Horizon3.ai NodeZero",cat:"Red Team",icon:"⚫",models:["penllm","charlotte"],type:"deep",detail:"NodeZero usa PentestGPT para planificación de ataques y Charlotte AI para inteligencia de adversarios",maturity:5},
+  {name:"Pentera",cat:"VAPT / Red Team",icon:"🔺",models:["penllm","codeshield"],type:"deep",detail:"Autonomous Pentesting combina HackerLLM con CodeShield para exploits de código vulnerabe",maturity:4},
+  {name:"Picus Security",cat:"Red Team",icon:"🎯",models:["charlotte","secpalm"],type:"api",detail:"The Complete Security Control Validation usa Charlotte AI para simular TTPs reales de adversarios",maturity:4},
+  {name:"ImmuniWeb",cat:"VAPT",icon:"🛡️",models:["llmsec","codeshield","penllm"],type:"deep",detail:"AI Platform usa los tres modelos: Claude para contextualización, CodeShield para análisis de código",maturity:4},
+  {name:"Vanta",cat:"GRC",icon:"✅",models:["llmsec","falconllm"],type:"api",detail:"AI Compliance usa Claude para interpretación de controles y Falcon LLM para mapeo de frameworks",maturity:3},
+  {name:"Drata",cat:"GRC",icon:"📊",models:["llmsec","osiris"],type:"api",detail:"Drata AI integra Claude para gap analysis y Osiris para detección de desviaciones de política",maturity:3},
+  {name:"Okta AI",cat:"IAM",icon:"🔐",models:["seccopilot","armis"],type:"api",detail:"Okta AI usa Security Copilot para detección de accesos anómalos y Armis para context de dispositivos",maturity:3},
+  {name:"Silverfort",cat:"IAM / ZT",icon:"🥈",models:["armis","osiris"],type:"deep",detail:"AI Risk Engine combina Armis para contexto de activos y Osiris para scoring de identidades",maturity:4},
+  {name:"Zscaler",cat:"Zero Trust",icon:"🌐",models:["crystalball","armis"],type:"deep",detail:"Zero Trust Exchange AI usa CrystalBall para predicción de amenazas de red y Armis para visibilidad",maturity:4},
+  {name:"Cato Networks",cat:"Zero Trust / SASE",icon:"🔗",models:["crystalball","secbert"],type:"deep",detail:"SASE AI integra CrystalBall para análisis de flujos y SecBERT para clasificación de tráfico",maturity:4},
+  {name:"Palo Alto NGFW AI",cat:"Firewall",icon:"🔥",models:["crystalball","secpalm"],type:"native",detail:"Precision AI firewall: CrystalBall detecta amenazas zero-day, Sec-PaLM explica en lenguaje natural",maturity:5}
+];
+
+const typeColor = {native:"#534AB7",deep:"#1D9E75",api:"#378ADD",beta:"#EF9F27"};
+const typeBg = {native:"#EEEDFE",deep:"#E1F5EE",api:"#E6F1FB",beta:"#FAEEDA"};
+const typeLabel = {native:"Nativo",deep:"Fine-tune",api:"API",beta:"Beta"};
+
+let activeModel = null;
+
+function renderDSLMs() {
+  const g = document.getElementById("dslm-grid");
+  g.innerHTML = dslms.map(d => `
+    <div class="dslm-card${activeModel===d.id?' active':''}" onclick="selectModel('${d.id}')">
+      <div class="dslm-name">${d.name}</div>
+      <div class="dslm-owner">${d.owner}</div>
+      <div class="dslm-tags">${d.domains.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+    </div>`).join('');
+}
+
+function renderAdopters(filter) {
+  const g = document.getElementById("adopter-grid");
+  g.innerHTML = adopters.map(a => {
+    const match = !filter || a.models.includes(filter);
+    const cls = !filter ? '' : match ? 'highlight' : 'dimmed';
+    const bars = Array(5).fill(0).map((_,i)=>`<div class="bar-seg ${i<a.maturity?'bar-on':'bar-off'}"></div>`).join('');
+    return `<div class="adopter-card ${cls}">
+      <div class="adopter-head">
+        <div class="adopter-icon" style="background:${typeBg[a.type]}">${a.icon}</div>
+        <div><div class="adopter-name">${a.name}</div><div class="adopter-cat">${a.cat}</div></div>
+      </div>
+      <div class="adopter-detail">${a.detail}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px">${a.models.map(m=>{
+        const dslm = dslms.find(d=>d.id===m);
+        return `<span class="adopter-model" style="background:${typeBg[a.type]};color:${typeColor[a.type]}">${dslm?dslm.name.split(' ')[0]:m}</span>`;
+      }).join('')}</div>
+      <div class="maturity-bar">${bars}</div>
+      <div class="maturity-label">Madurez de adopción · <span style="color:${typeColor[a.type]};font-weight:500">${typeLabel[a.type]}</span></div>
+    </div>`;
+  }).join('');
+}
+
+function selectModel(id) {
+  activeModel = activeModel === id ? null : id;
+  renderDSLMs();
+  renderAdopters(activeModel);
+  const conn = document.getElementById("connector");
+  if (activeModel) {
+    const dslm = dslms.find(d=>d.id===activeModel);
+    const count = adopters.filter(a=>a.models.includes(activeModel)).length;
+    conn.innerHTML = `<svg width="20" height="20" viewBox="0 0 20 20"><path d="M10 2v14M5 12l5 5 5-5" fill="none" stroke="#534AB7" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span style="color:#534AB7;font-weight:500">${dslm.name}</span><span style="color:var(--color-text-secondary)">— ${count} vendors lo adoptan · ${dslm.desc}</span>`;
+  } else {
+    conn.innerHTML = `<svg width="20" height="20" viewBox="0 0 20 20"><path d="M10 2v14M5 12l5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Selecciona un DSLM para ver sus early adopters</span>`;
+  }
+}
+
+function reset() { activeModel = null; renderDSLMs(); renderAdopters(null); selectModel(null); activeModel=null; renderDSLMs(); }
+
+renderDSLMs();
+renderAdopters(null);
+</script>
+
+
+
+
+

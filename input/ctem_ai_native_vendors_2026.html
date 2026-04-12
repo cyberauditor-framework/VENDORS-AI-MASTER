@@ -1,0 +1,343 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+.w{padding:1rem 0;font-family:var(--font-sans)}
+h2.sr{position:absolute;width:1px;height:1px;overflow:hidden}
+.hdr{margin-bottom:1.25rem}
+.hdr h3{font-size:18px;font-weight:500;color:var(--color-text-primary)}
+.hdr p{font-size:13px;color:var(--color-text-secondary);margin-top:4px;line-height:1.6}
+.phases{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1.25rem}
+.ph{font-size:11px;padding:4px 10px;border-radius:999px;border:0.5px solid var(--color-border-secondary);color:var(--color-text-secondary);cursor:pointer;transition:all .15s}
+.ph:hover{background:var(--color-background-secondary)}
+.ph.on{background:#534AB7;color:#EEEDFE;border-color:#534AB7}
+.ph-label{font-size:11px;color:var(--color-text-secondary);margin-right:4px;align-self:center}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1.25rem}
+.st{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:10px 12px}
+.sn{font-size:20px;font-weight:500;color:var(--color-text-primary)}
+.sl{font-size:11px;color:var(--color-text-secondary);margin-top:2px}
+.list{display:flex;flex-direction:column;gap:10px}
+.card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:14px 16px;transition:border-color .15s;cursor:pointer}
+.card:hover{border-color:#7F77DD}
+.card.open{border-color:#534AB7}
+.card-top{display:flex;align-items:center;gap:12px}
+.rank-badge{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;flex-shrink:0}
+.r1{background:#FAEEDA;color:#633806}
+.r2{background:#F1EFE8;color:#444441}
+.r3{background:#EEEDFE;color:#26215C}
+.rn{background:var(--color-background-secondary);color:var(--color-text-secondary)}
+.card-mid{flex:1;min-width:0}
+.vname{font-size:14px;font-weight:500;color:var(--color-text-primary)}
+.vcats{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.vtag{font-size:10px;padding:2px 7px;border-radius:999px;border:0.5px solid var(--color-border-tertiary);color:var(--color-text-secondary)}
+.vtag.active-ph{background:#EEEDFE;color:#3C3489;border-color:#AFA9EC}
+.card-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0}
+.score-wrap{text-align:right}
+.score-n{font-size:18px;font-weight:500;color:var(--color-text-primary)}
+.score-l{font-size:10px;color:var(--color-text-secondary)}
+.ai-badge{font-size:10px;padding:2px 8px;border-radius:999px}
+.b-native{background:#E1F5EE;color:#085041}
+.b-deep{background:#EEEDFE;color:#3C3489}
+.b-api{background:#E6F1FB;color:#0C447C}
+.detail{margin-top:12px;border-top:0.5px solid var(--color-border-tertiary);padding-top:12px;display:none}
+.card.open .detail{display:block}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.det-block{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:10px 12px}
+.det-label{font-size:10px;color:var(--color-text-secondary);font-weight:500;margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em}
+.det-val{font-size:12px;color:var(--color-text-primary);line-height:1.5}
+.stars{display:flex;gap:3px;margin-top:2px}
+.star{width:8px;height:8px;border-radius:50%}
+.star-on{background:#534AB7}
+.star-off{background:var(--color-border-tertiary)}
+.dslm-pill{display:inline-block;font-size:10px;padding:2px 7px;border-radius:999px;background:#EEEDFE;color:#3C3489;margin:2px 2px 0 0}
+.cta{font-size:12px;color:#534AB7;cursor:pointer;margin-top:8px;display:inline-flex;align-items:center;gap:4px}
+.no-res{text-align:center;color:var(--color-text-secondary);font-size:13px;padding:2rem}
+
+/* Benchmark dark-mode normalization */
+:root {
+  color-scheme: dark;
+  --font-sans: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  --color-background-primary: #161b22;
+  --color-background-secondary: #0d1117;
+  --color-border-secondary: #30363d;
+  --color-border-tertiary: #2a313c;
+  --color-text-primary: #e6edf3;
+  --color-text-secondary: #9aa4b2;
+  --border-radius-md: 10px;
+  --border-radius-lg: 14px;
+}
+html, body {
+  background: #0d1117;
+  color: var(--color-text-primary);
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+/* Dark-safe overrides for legacy light badges/tags */
+.b-leader, .bb, .b-deep, .dpill, .dslm-pill, .vchip.top,
+[style*='background:#EEEDFE'], [style*='background: #EEEDFE'] {
+  background: #241a4a !important;
+  color: #e4ddff !important;
+  border-color: #7d6ce0 !important;
+}
+.b-rising, .bi, .b-native,
+[style*='background:#E1F5EE'], [style*='background: #E1F5EE'] {
+  background: #12352e !important;
+  color: #b7f3e1 !important;
+  border-color: #46a08b !important;
+}
+.be, .b-api,
+[style*='background:#E6F1FB'], [style*='background: #E6F1FB'] {
+  background: #132f48 !important;
+  color: #b7ddff !important;
+  border-color: #4f85b5 !important;
+}
+.r1,
+[style*='background:#FAEEDA'], [style*='background: #FAEEDA'] {
+  background: #3a2d0f !important;
+  color: #f0d58d !important;
+  border-color: #a07c2c !important;
+}
+[style*='background:#FAECE7'], [style*='background: #FAECE7'] {
+  background: #3a2015 !important;
+  color: #ffd0bd !important;
+  border-color: #a86145 !important;
+}
+[style*='background:#FBEAF0'], [style*='background: #FBEAF0'] {
+  background: #341d2c !important;
+  color: #f2cfe0 !important;
+  border-color: #9a5f7a !important;
+}
+.ok, [style*='color:#085041'], [style*='color: #085041'] {
+  color: #8fe8cf !important;
+}
+[style*='color:#0C447C'], [style*='color: #0C447C'],
+[style*='color:#185FA5'], [style*='color: #185FA5'] {
+  color: #b7ddff !important;
+}
+[style*='color:#3C3489'], [style*='color: #3C3489'],
+[style*='color:#534AB7'], [style*='color: #534AB7'] {
+  color: #e4ddff !important;
+}
+</style>
+
+<div class="w">
+<h2 class="sr">Top 10 vendors CTEM nativos en IA — 2026</h2>
+<div class="hdr">
+  <h3>CTEM — Continuous Threat Exposure Management · Top 10 AI-native 2026</h3>
+  <p>Vendors que implementan el ciclo completo de Gartner: Scoping → Discovery → Prioritization → Validation → Mobilization. Filtra por fase del ciclo CTEM.</p>
+</div>
+
+<div class="stats">
+  <div class="st"><div class="sn">10</div><div class="sl">Vendors rankeados</div></div>
+  <div class="st"><div class="sn">5</div><div class="sl">Fases CTEM cubiertas</div></div>
+  <div class="st"><div class="sn">7</div><div class="sl">Con DSLM propio</div></div>
+  <div class="st"><div class="sn">100%</div><div class="sl">AI-native</div></div>
+</div>
+
+<div style="display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:1.25rem">
+  <span class="ph-label">Fase CTEM:</span>
+  <button class="ph on" data-f="all" onclick="setPhase(this,'all')">Todas</button>
+  <button class="ph" data-f="scoping" onclick="setPhase(this,'scoping')">Scoping</button>
+  <button class="ph" data-f="discovery" onclick="setPhase(this,'discovery')">Discovery</button>
+  <button class="ph" data-f="prioritization" onclick="setPhase(this,'prioritization')">Prioritization</button>
+  <button class="ph" data-f="validation" onclick="setPhase(this,'validation')">Validation</button>
+  <button class="ph" data-f="mobilization" onclick="setPhase(this,'mobilization')">Mobilization</button>
+</div>
+
+<div class="list" id="list"></div>
+</div>
+
+<script>
+const vendors = [
+  {
+    rank:1, name:"XM Cyber", ai:"native", score:94,
+    phases:["scoping","discovery","prioritization","validation"],
+    tagline:"Attack path management con simulación continua AI-driven",
+    dslms:["Charlotte AI","SecBERT"],
+    strengths:["Ataque path graph nativo en GNN","Priorización basada en impacto real","Simulación de movimiento lateral continua"],
+    weakness:"Movilización/remediación delegada a terceros",
+    usecase:"Grandes enterprise con entornos híbridos complejos",
+    coverage:5, innovation:5, maturity:4,
+    founded:2016, hq:"Tel Aviv / NY"
+  },
+  {
+    rank:2, name:"Tenable One", ai:"native", score:91,
+    phases:["scoping","discovery","prioritization","mobilization"],
+    tagline:"Exposure management platform unificada con AI predictiva",
+    dslms:["Sec-PaLM","SecBERT"],
+    strengths:["Cobertura de activos más amplia del mercado","ExposureAI con lenguaje natural","Integración nativa con CMDB y ticketing"],
+    weakness:"Validación ofensiva menos madura que pure-plays",
+    usecase:"CISO que necesita visión unificada de exposición",
+    coverage:5, innovation:4, maturity:5,
+    founded:2002, hq:"Columbia, MD"
+  },
+  {
+    rank:3, name:"Horizon3.ai (NodeZero)", ai:"native", score:90,
+    phases:["discovery","validation","prioritization"],
+    tagline:"Pentesting autónomo continuo con LLM de ataque",
+    dslms:["PentestGPT","Charlotte AI"],
+    strengths:["Autonomous pentesting sin intervención humana","Evidencia de explotación real (no teórica)","Fix action integrado post-validación"],
+    weakness:"Scoping y movilización aún manuales",
+    usecase:"Equipos de seguridad que quieren validación ofensiva continua",
+    coverage:3, innovation:5, maturity:4,
+    founded:2019, hq:"Santa Clara, CA"
+  },
+  {
+    rank:4, name:"Palo Alto Cortex XSIAM", ai:"native", score:89,
+    phases:["scoping","discovery","prioritization","validation","mobilization"],
+    tagline:"Ciclo CTEM completo integrado en plataforma de operaciones",
+    dslms:["CrystalBall","Sec-PaLM"],
+    strengths:["Única plataforma que cubre las 5 fases","AI-driven SOAR para movilización","Telemetría de red + endpoint + cloud unificada"],
+    weakness:"Complejidad de implementación y coste elevado",
+    usecase:"Enterprises que ya están en el ecosistema Palo Alto",
+    coverage:5, innovation:4, maturity:5,
+    founded:2005, hq:"Santa Clara, CA"
+  },
+  {
+    rank:5, name:"Cymulate", ai:"deep", score:86,
+    phases:["scoping","validation","mobilization"],
+    tagline:"BAS + exposure management con priorización AI contextual",
+    dslms:["SecBERT","LLM-Security"],
+    strengths:["Breach & Attack Simulation con 10,000+ escenarios","Integración con frameworks MITRE ATT&CK","Remediation guidance AI-generado"],
+    weakness:"Discovery de activos más limitado que competidores",
+    usecase:"SOC teams que quieren medir controles de seguridad continuamente",
+    coverage:3, innovation:4, maturity:4,
+    founded:2016, hq:"Tel Aviv / NY"
+  },
+  {
+    rank:6, name:"CrowdStrike Falcon Surface", ai:"native", score:85,
+    phases:["scoping","discovery","prioritization"],
+    tagline:"EASM + threat intel fusion con Charlotte AI",
+    dslms:["Charlotte AI","SecBERT"],
+    strengths:["Inteligencia de adversarios integrada en exposición","EASM + internal attack surface unificado","Priorización basada en actor de amenaza activo"],
+    weakness:"Validación ofensiva depende de integraciones externas",
+    usecase:"Organizaciones con alta exposición en superficie externa",
+    coverage:4, innovation:5, maturity:4,
+    founded:2011, hq:"Austin, TX"
+  },
+  {
+    rank:7, name:"Axonius", ai:"deep", score:83,
+    phases:["scoping","discovery","mobilization"],
+    tagline:"Asset intelligence platform con AI para visibilidad de exposición",
+    dslms:["Osiris","LLM-Security"],
+    strengths:["800+ integraciones para discovery de activos","AI para detección de activos no gestionados","Policy enforcement automatizado"],
+    weakness:"No hace validación ofensiva ni scoring de amenaza activa",
+    usecase:"Equipos de IT/Security que necesitan inventario de activos completo",
+    coverage:4, innovation:3, maturity:4,
+    founded:2017, hq:"New York, NY"
+  },
+  {
+    rank:8, name:"Qualys TruRisk", ai:"native", score:82,
+    phases:["discovery","prioritization","mobilization"],
+    tagline:"Risk-based VM con scoring de exposición AI-driven",
+    dslms:["Sec-PaLM","SecBERT"],
+    strengths:["TruRisk Score combina amenaza + activo + impacto negocio","Patch management AI-prioritized","Cloud + on-prem + OT cobertura nativa"],
+    weakness:"Validación adversarial mínima; UI legacy en módulos antiguos",
+    usecase:"Empresas con grandes parques de vulnerabilidades que necesitan priorización",
+    coverage:4, innovation:3, maturity:5,
+    founded:1999, hq:"Foster City, CA"
+  },
+  {
+    rank:9, name:"Pentera", ai:"native", score:80,
+    phases:["discovery","validation","prioritization"],
+    tagline:"Automated security validation con explotación AI-guided",
+    dslms:["PentestGPT","CodeShield"],
+    strengths:["Explotación real de vulnerabilidades (no simulación)","Reporte ejecutivo + técnico auto-generado","Cobertura de Active Directory attacks nativa"],
+    weakness:"Scoping y movilización fuera del producto",
+    usecase:"Equipos red team que quieren escalar validación continua",
+    coverage:3, innovation:4, maturity:4,
+    founded:2015, hq:"Tel Aviv / Boston"
+  },
+  {
+    rank:10, name:"Bitsight", ai:"deep", score:77,
+    phases:["scoping","prioritization","mobilization"],
+    tagline:"Cyber risk management con exposure scoring externo AI-driven",
+    dslms:["SecBERT","Falcon LLM"],
+    strengths:["Ratings de exposición para cadena de suministro","AI para priorización de riesgo de terceros","Integración con GRC y cyber insurance"],
+    weakness:"Orientado a riesgo externo; discovery interno limitado",
+    usecase:"CISO que gestiona riesgo de terceros y cyber insurance",
+    coverage:3, innovation:3, maturity:4,
+    founded:2011, hq:"Boston, MA"
+  }
+];
+
+let activePhase = "all";
+let openCard = null;
+
+function stars(n, max=5) {
+  return Array(max).fill(0).map((_,i)=>`<div class="star ${i<n?'star-on':'star-off'}"></div>`).join('');
+}
+
+function rankClass(r) { return r===1?'r1':r===2?'r2':r===3?'r3':'rn'; }
+function aiBadge(t) { return t==='native'?'b-native':t==='deep'?'b-deep':'b-api'; }
+function aiLabel(t) { return t==='native'?'100% Native AI':t==='deep'?'AI Deep':'AI via API'; }
+
+function render() {
+  const list = document.getElementById("list");
+  const filtered = activePhase==="all" ? vendors : vendors.filter(v=>v.phases.includes(activePhase));
+  if (!filtered.length) { list.innerHTML = '<div class="no-res">Sin vendors en esta fase</div>'; return; }
+  list.innerHTML = filtered.map(v => {
+    const isOpen = openCard === v.rank;
+    return `<div class="card${isOpen?' open':''}" onclick="toggleCard(${v.rank})">
+      <div class="card-top">
+        <div class="rank-badge ${rankClass(v.rank)}">${v.rank}</div>
+        <div class="card-mid">
+          <div class="vname">${v.name}</div>
+          <div class="vcats">${v.phases.map(p=>`<span class="vtag${p===activePhase&&activePhase!=='all'?' active-ph':''}">${p.charAt(0).toUpperCase()+p.slice(1)}</span>`).join('')}</div>
+        </div>
+        <div class="card-right">
+          <div class="score-wrap"><div class="score-n">${v.score}</div><div class="score-l">AI score</div></div>
+          <span class="ai-badge ${aiBadge(v.ai)}">${aiLabel(v.ai)}</span>
+        </div>
+      </div>
+      <div style="font-size:12px;color:var(--color-text-secondary);margin-top:8px;padding-left:44px">${v.tagline}</div>
+      <div class="detail">
+        <div class="detail-grid">
+          <div class="det-block">
+            <div class="det-label">Fortalezas AI</div>
+            ${v.strengths.map(s=>`<div class="det-val" style="margin-bottom:3px">· ${s}</div>`).join('')}
+          </div>
+          <div class="det-block">
+            <div class="det-label">Caso de uso ideal</div>
+            <div class="det-val">${v.usecase}</div>
+            <div class="det-label" style="margin-top:10px">Gap / debilidad</div>
+            <div class="det-val">${v.weakness}</div>
+          </div>
+          <div class="det-block">
+            <div class="det-label">DSLMs utilizados</div>
+            <div>${v.dslms.map(d=>`<span class="dslm-pill">${d}</span>`).join('')}</div>
+          </div>
+          <div class="det-block">
+            <div class="det-label">Cobertura CTEM</div>
+            <div class="stars">${stars(v.coverage)}</div>
+            <div class="det-label" style="margin-top:8px">Innovación AI</div>
+            <div class="stars">${stars(v.innovation)}</div>
+            <div class="det-label" style="margin-top:8px">Madurez de producto</div>
+            <div class="stars">${stars(v.maturity)}</div>
+          </div>
+        </div>
+        <div class="cta" onclick="event.stopPropagation();sendPrompt('Profundiza en ${v.name}: arquitectura AI, integraciones clave y casos de uso CTEM')">Ver análisis profundo ↗</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleCard(rank) {
+  openCard = openCard === rank ? null : rank;
+  render();
+}
+
+function setPhase(el, f) {
+  activePhase = f;
+  document.querySelectorAll('.ph').forEach(p=>p.classList.toggle('on', p.dataset.f===f));
+  openCard = null;
+  render();
+}
+
+render();
+</script>
+
+
+
+
+

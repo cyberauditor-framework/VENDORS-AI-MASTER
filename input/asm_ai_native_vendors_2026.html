@@ -1,0 +1,397 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+.w{padding:1rem 0;font-family:var(--font-sans)}
+h2.sr{position:absolute;width:1px;height:1px;overflow:hidden}
+.hdr h3{font-size:18px;font-weight:500;color:var(--color-text-primary)}
+.hdr p{font-size:13px;color:var(--color-text-secondary);margin-top:4px;line-height:1.6;margin-bottom:1.25rem}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1.25rem}
+.st{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:10px 12px}
+.sn{font-size:20px;font-weight:500;color:var(--color-text-primary)}
+.sl{font-size:11px;color:var(--color-text-secondary);margin-top:2px}
+.tabs{display:flex;gap:8px;margin-bottom:1.25rem}
+.tab{flex:1;padding:10px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);font-size:13px;font-weight:500;color:var(--color-text-secondary);cursor:pointer;text-align:center;transition:all .15s}
+.tab.on-ext{background:#E6F1FB;color:#0C447C;border-color:#85B7EB}
+.tab.on-int{background:#E1F5EE;color:#085041;border-color:#5DCAA5}
+.tab.on-both{background:#EEEDFE;color:#3C3489;border-color:#AFA9EC}
+.section-label{font-size:11px;font-weight:500;letter-spacing:.06em;color:var(--color-text-secondary);text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.section-line{flex:1;height:0.5px;background:var(--color-border-tertiary)}
+.list{display:flex;flex-direction:column;gap:8px;margin-bottom:1.5rem}
+.card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden;cursor:pointer;transition:border-color .15s}
+.card:hover{border-color:#7F77DD}
+.card.open{border-color:#534AB7}
+.card.ext-type{border-left:3px solid #378ADD}
+.card.int-type{border-left:3px solid #1D9E75}
+.card.both-type{border-left:3px solid #7F77DD}
+.card-top{display:flex;align-items:center;gap:10px;padding:12px 14px}
+.rb{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;flex-shrink:0}
+.r1{background:#FAEEDA;color:#633806}.r2{background:#F1EFE8;color:#444441}.r3{background:#EEEDFE;color:#26215C}.rn{background:var(--color-background-secondary);color:var(--color-text-secondary)}
+.mid{flex:1;min-width:0}
+.vn{font-size:13px;font-weight:500;color:var(--color-text-primary)}
+.vtags{display:flex;flex-wrap:wrap;gap:3px;margin-top:3px}
+.vtag{font-size:10px;padding:1px 6px;border-radius:999px;border:0.5px solid var(--color-border-tertiary);color:var(--color-text-secondary)}
+.right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0}
+.score{font-size:17px;font-weight:500;color:var(--color-text-primary)}
+.slabel{font-size:10px;color:var(--color-text-secondary)}
+.type-badge{font-size:10px;padding:2px 7px;border-radius:999px}
+.be{background:#E6F1FB;color:#0C447C}
+.bi{background:#E1F5EE;color:#085041}
+.bb{background:#EEEDFE;color:#3C3489}
+.tagline{font-size:11px;color:var(--color-text-secondary);padding:0 14px 8px 54px;margin-top:-4px}
+.detail{border-top:0.5px solid var(--color-border-tertiary);padding:12px 14px;display:none}
+.card.open .detail{display:block}
+.dgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.dblk{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:10px 12px}
+.dlbl{font-size:10px;color:var(--color-text-secondary);font-weight:500;margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em}
+.dval{font-size:11px;color:var(--color-text-primary);line-height:1.5}
+.dot-row{display:flex;gap:3px;margin-top:3px}
+.dot{width:8px;height:8px;border-radius:50%}
+.don{background:#534AB7}.doff{background:var(--color-border-tertiary)}
+.dpill{display:inline-block;font-size:10px;padding:2px 6px;border-radius:999px;background:#EEEDFE;color:#3C3489;margin:2px 2px 0 0}
+.cta{font-size:12px;color:#534AB7;cursor:pointer;margin-top:10px;display:inline-flex;align-items:center;gap:4px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:1.25rem}
+.li{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--color-text-secondary)}
+.lbar{width:12px;height:12px;border-radius:3px}
+
+/* Benchmark dark-mode normalization */
+:root {
+  color-scheme: dark;
+  --font-sans: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  --color-background-primary: #161b22;
+  --color-background-secondary: #0d1117;
+  --color-border-secondary: #30363d;
+  --color-border-tertiary: #2a313c;
+  --color-text-primary: #e6edf3;
+  --color-text-secondary: #9aa4b2;
+  --border-radius-md: 10px;
+  --border-radius-lg: 14px;
+}
+html, body {
+  background: #0d1117;
+  color: var(--color-text-primary);
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+/* Dark-safe overrides for legacy light badges/tags */
+.b-leader, .bb, .b-deep, .dpill, .dslm-pill, .vchip.top,
+[style*='background:#EEEDFE'], [style*='background: #EEEDFE'] {
+  background: #241a4a !important;
+  color: #e4ddff !important;
+  border-color: #7d6ce0 !important;
+}
+.b-rising, .bi, .b-native,
+[style*='background:#E1F5EE'], [style*='background: #E1F5EE'] {
+  background: #12352e !important;
+  color: #b7f3e1 !important;
+  border-color: #46a08b !important;
+}
+.be, .b-api,
+[style*='background:#E6F1FB'], [style*='background: #E6F1FB'] {
+  background: #132f48 !important;
+  color: #b7ddff !important;
+  border-color: #4f85b5 !important;
+}
+.r1,
+[style*='background:#FAEEDA'], [style*='background: #FAEEDA'] {
+  background: #3a2d0f !important;
+  color: #f0d58d !important;
+  border-color: #a07c2c !important;
+}
+[style*='background:#FAECE7'], [style*='background: #FAECE7'] {
+  background: #3a2015 !important;
+  color: #ffd0bd !important;
+  border-color: #a86145 !important;
+}
+[style*='background:#FBEAF0'], [style*='background: #FBEAF0'] {
+  background: #341d2c !important;
+  color: #f2cfe0 !important;
+  border-color: #9a5f7a !important;
+}
+.ok, [style*='color:#085041'], [style*='color: #085041'] {
+  color: #8fe8cf !important;
+}
+[style*='color:#0C447C'], [style*='color: #0C447C'],
+[style*='color:#185FA5'], [style*='color: #185FA5'] {
+  color: #b7ddff !important;
+}
+[style*='color:#3C3489'], [style*='color: #3C3489'],
+[style*='color:#534AB7'], [style*='color: #534AB7'] {
+  color: #e4ddff !important;
+}
+</style>
+
+<div class="w">
+<h2 class="sr">Top 10 vendors ASM internos y externos nativos en IA — 2026</h2>
+<div class="hdr">
+  <h3>ASM — Attack Surface Management · Top 10 AI-native 2026</h3>
+  <p>Cubre External ASM (EASM), Internal ASM (IASM) y plataformas que unifican ambas superficies. Haz click en cada vendor para ver el análisis completo.</p>
+</div>
+
+<div class="stats">
+  <div class="st"><div class="sn">10</div><div class="sl">Vendors top</div></div>
+  <div class="st"><div class="sn">4</div><div class="sl">Solo EASM</div></div>
+  <div class="st"><div class="sn">2</div><div class="sl">Solo IASM</div></div>
+  <div class="st"><div class="sn">4</div><div class="sl">EASM + IASM</div></div>
+</div>
+
+<div class="legend">
+  <div class="li"><div class="lbar" style="background:#378ADD"></div>EASM — Superficie externa</div>
+  <div class="li"><div class="lbar" style="background:#1D9E75"></div>IASM — Superficie interna</div>
+  <div class="li"><div class="lbar" style="background:#7F77DD"></div>ASM unificado (ext + int)</div>
+</div>
+
+<div class="tabs">
+  <button class="tab on-both" data-t="all" onclick="setTab(this,'all')">Todos los vendors</button>
+  <button class="tab" data-t="ext" onclick="setTab(this,'ext')">Solo EASM</button>
+  <button class="tab" data-t="int" onclick="setTab(this,'int')">Solo IASM</button>
+  <button class="tab" data-t="both" onclick="setTab(this,'both')">EASM + IASM unificado</button>
+</div>
+
+<div id="main-list"></div>
+</div>
+
+<script>
+const vendors = [
+  {
+    rank:1,name:"CrowdStrike Falcon Surface",type:"both",score:95,
+    tagline:"EASM + IASM unificado con Charlotte AI e inteligencia adversarial activa",
+    badges:["EASM","IASM","Threat Intel","Attack Path"],
+    ai:"native",
+    why:"Única plataforma que fusiona superficie externa e interna con inteligencia de adversarios reales activos. Charlotte AI correlaciona activos expuestos con TTPs de actores que ya están atacando tu industria hoy.",
+    strengths:["Correlación activo expuesto ↔ actor de amenaza activo","Discovery externo continuo sin agente","Integración nativa con XDR para contexto interno"],
+    gap:"Visibilidad interna requiere Falcon sensor desplegado",
+    usecase:"Enterprises que ya operan en el ecosistema CrowdStrike",
+    dslms:["Charlotte AI","SecBERT"],
+    coverage:5,innovation:5,maturity:4,
+    founded:"2011",hq:"Austin, TX"
+  },
+  {
+    rank:2,name:"Tenable One (EASM + Lumin)",type:"both",score:93,
+    tagline:"Exposure management unificado con ExposureAI sobre superficie total",
+    badges:["EASM","IASM","Risk Scoring","Cloud"],
+    ai:"native",
+    why:"ExposureAI permite queries en lenguaje natural sobre toda la superficie (externa + interna + cloud). TruRisk Score combina exposición, amenaza activa e impacto de negocio en una métrica accionable.",
+    strengths:["Mayor cobertura de activos del mercado","Natural language exposure queries","OT/IoT + cloud + on-prem en una plataforma"],
+    gap:"Validación adversarial menos profunda que pure-plays",
+    usecase:"CISO que necesita visión consolidada de riesgo total",
+    dslms:["Sec-PaLM","SecBERT"],
+    coverage:5,innovation:4,maturity:5,
+    founded:"2002",hq:"Columbia, MD"
+  },
+  {
+    rank:3,name:"Palo Alto Cortex Xpanse",type:"ext",score:92,
+    tagline:"EASM líder con detección de exposición en tiempo real y remediación AI-guided",
+    badges:["EASM","Remediación","Cloud","Supply Chain"],
+    ai:"native",
+    why:"Xpanse escanea continuamente la internet buscando activos de la organización — incluso los que IT desconoce. CrystalBall AI predice qué exposiciones serán explotadas antes de que aparezca el CVE.",
+    strengths:["Descubre activos desconocidos en minutos","Integración nativa con XSOAR para remediación","Cobertura de supply chain y subsidiarias"],
+    gap:"No cubre superficie interna de forma nativa",
+    usecase:"Grandes enterprises con superficie externa masiva y shadow IT",
+    dslms:["CrystalBall","Sec-PaLM"],
+    coverage:4,innovation:5,maturity:5,
+    founded:"2021 (Expanse acq.)",hq:"Santa Clara, CA"
+  },
+  {
+    rank:4,name:"Axonius",type:"int",score:89,
+    tagline:"Asset intelligence platform con AI para visibilidad interna completa",
+    badges:["IASM","Asset Discovery","Compliance","Policy"],
+    ai:"deep",
+    why:"Axonius conecta 800+ fuentes para construir el inventario más completo de activos internos. Su AI detecta dispositivos no gestionados, configuraciones inseguras y gaps de cobertura de controles en tiempo real.",
+    strengths:["800+ integraciones para discovery interno","Detección de shadow IT y activos no gestionados","Policy enforcement automatizado con AI"],
+    gap:"No gestiona superficie externa ni validación ofensiva",
+    usecase:"IT Security que necesita inventario de activos interno completo",
+    dslms:["Osiris","LLM-Security"],
+    coverage:3,innovation:4,maturity:4,
+    founded:"2017",hq:"New York, NY"
+  },
+  {
+    rank:5,name:"Censys ASM",type:"ext",score:88,
+    tagline:"EASM con el mayor escáner de internet del mundo y AI de clasificación de activos",
+    badges:["EASM","Internet Scan","Discovery","Cloud"],
+    ai:"native",
+    why:"Censys opera el escáner de internet más completo del mundo (IPv4 completo + IPv6). Su AI clasifica automáticamente activos, identifica tecnologías expuestas y correlaciona con CVEs activos en menos de 24h.",
+    strengths:["Escáner IPv4/IPv6 más completo del mercado","Clasificación AI de tecnologías expuestas","API-first para integración con pipelines de seguridad"],
+    gap:"Remediación y correlación interna limitadas",
+    usecase:"Equipos de threat intelligence y red teams externos",
+    dslms:["SecBERT","Sec-PaLM"],
+    coverage:4,innovation:4,maturity:4,
+    founded:"2013",hq:"Ann Arbor, MI"
+  },
+  {
+    rank:6,name:"Hadrian",type:"ext",score:87,
+    tagline:"EASM 100% autónomo con hacking AI continuo desde perspectiva del atacante",
+    badges:["EASM","Autonomous Hacking","Risk Scoring","Cloud"],
+    ai:"native",
+    why:"Hadrian simula continuamente el comportamiento de un atacante real usando AI para mapear, atacar y priorizar exposiciones externas. Es el EASM más 'ofensivo' del mercado: no solo descubre, sino que intenta explotar.",
+    strengths:["AI que simula atacante real 24/7","Priorización basada en explotabilidad real (no CVSS)","Zero friction: sin agentes, sin credenciales"],
+    gap:"Orientado solo a superficie externa; sin contexto interno",
+    usecase:"Empresas que quieren perspectiva del atacante continua",
+    dslms:["PentestGPT","SecBERT"],
+    coverage:3,innovation:5,maturity:3,
+    founded:"2019",hq:"Amsterdam"
+  },
+  {
+    rank:7,name:"Microsoft Defender EASM",type:"both",score:85,
+    tagline:"EASM integrado en Microsoft Security con Copilot AI nativo",
+    badges:["EASM","IASM","Cloud","M365"],
+    ai:"deep",
+    why:"Defender EASM se integra nativamente con el ecosistema Microsoft: Sentinel, Defender XDR y Security Copilot. Para organizations en Azure, ofrece la correlación más fluida entre superficie externa e infraestructura interna.",
+    strengths:["Integración nativa con Microsoft Security Stack","Security Copilot para análisis en lenguaje natural","Correlación externa ↔ interna via Sentinel"],
+    gap:"Menor profundidad de discovery que pure-plays EASM",
+    usecase:"Organizaciones Microsoft-centric con M365 y Azure",
+    dslms:["Security Copilot LLM","SecBERT"],
+    coverage:4,innovation:3,maturity:4,
+    founded:"2022",hq:"Redmond, WA"
+  },
+  {
+    rank:8,name:"Armis Centrix",type:"int",score:84,
+    tagline:"IASM especializado en OT, IoT y activos no tradicionales con AI de comportamiento",
+    badges:["IASM","OT/IoT","Healthcare","Asset Behavior"],
+    ai:"native",
+    why:"Armis es el líder indiscutible en activos que no pueden tener agente: PLCs industriales, dispositivos médicos, cámaras IP, impresoras. Su AI aprende el comportamiento normal de cada tipo de dispositivo y detecta anomalías sin intrusión.",
+    strengths:["Único con cobertura profunda de OT/IoT/BMS","Behavioral AI sin agente para cualquier dispositivo","Base de datos de 3B+ de perfiles de dispositivos"],
+    gap:"Superficie externa muy limitada",
+    usecase:"Industria, salud, energía con entornos OT críticos",
+    dslms:["Armis AI Engine","SecBERT"],
+    coverage:3,innovation:5,maturity:4,
+    founded:"2015",hq:"San Francisco, CA"
+  },
+  {
+    rank:9,name:"Bitsight",type:"ext",score:81,
+    tagline:"EASM orientado a cyber risk rating con AI para supply chain y terceros",
+    badges:["EASM","Third Party","Risk Rating","Insurance"],
+    ai:"deep",
+    why:"Bitsight lidera el mercado de cyber risk ratings para terceros. Su AI analiza la postura de seguridad externa de proveedores, subsidiarias y socios en tiempo real, siendo la referencia para cyber insurance y due diligence M&A.",
+    strengths:["Estándar de mercado en cyber risk ratings","Cobertura de supply chain y n-ésimo nivel de terceros","Integración con GRC y cyber insurance carriers"],
+    gap:"Discovery propio limitado; no cubre superficie interna",
+    usecase:"CISO que gestiona riesgo de terceros y M&A due diligence",
+    dslms:["SecBERT","Falcon LLM"],
+    coverage:3,innovation:3,maturity:4,
+    founded:"2011",hq:"Boston, MA"
+  },
+  {
+    rank:10,name:"Ionix (ex-Cyberpion)",type:"both",score:79,
+    tagline:"EASM + supply chain attack surface con AI de dependencias digitales",
+    badges:["EASM","IASM","Supply Chain","Digital Dependencies"],
+    ai:"native",
+    why:"Ionix mapea no solo los activos directos de la organización sino toda su cadena de dependencias digitales: CDNs, SaaS conectados, librerías de terceros. Su AI identifica riesgos heredados de proveedores que aparecen como superficie de ataque propia.",
+    strengths:["Mapeo único de dependencias digitales de terceros","Detección de shadow SaaS conectado","AI para cadena de ataque via supply chain digital"],
+    gap:"Producto menos maduro que líderes del segmento",
+    usecase:"Empresas con alta dependencia de SaaS y APIs de terceros",
+    dslms:["SecBERT","LLM-Security"],
+    coverage:4,innovation:4,maturity:3,
+    founded:"2018",hq:"Tel Aviv / NY"
+  }
+];
+
+let activeTab = "all";
+let openCard = null;
+
+function dots(n,max=5){return Array(max).fill(0).map((_,i)=>`<div class="dot ${i<n?'don':'doff'}"></div>`).join('')}
+function rankClass(r){return r===1?'r1':r===2?'r2':r===3?'r3':'rn'}
+function typeClass(t){return t==='ext'?'ext-type':t==='int'?'int-type':'both-type'}
+function typeBadgeClass(t){return t==='ext'?'be':t==='int'?'bi':'bb'}
+function typeLabel(t){return t==='ext'?'EASM':t==='int'?'IASM':'EASM + IASM'}
+
+function render(){
+  const el = document.getElementById("main-list");
+  let filtered = vendors;
+  if(activeTab==='ext') filtered = vendors.filter(v=>v.type==='ext');
+  else if(activeTab==='int') filtered = vendors.filter(v=>v.type==='int');
+  else if(activeTab==='both') filtered = vendors.filter(v=>v.type==='both');
+
+  const extVendors = filtered.filter(v=>v.type==='ext');
+  const intVendors = filtered.filter(v=>v.type==='int');
+  const bothVendors = filtered.filter(v=>v.type==='both');
+
+  let html = '';
+
+  function renderGroup(list, label){
+    if(!list.length) return '';
+    return `<div class="section-label"><span>${label}</span><div class="section-line"></div></div>
+    <div class="list">${list.map(v=>renderCard(v)).join('')}</div>`;
+  }
+
+  if(activeTab==='all'){
+    html += renderGroup(bothVendors,'ASM unificado — EASM + IASM');
+    html += renderGroup(extVendors,'External ASM (EASM)');
+    html += renderGroup(intVendors,'Internal ASM (IASM)');
+  } else {
+    html += `<div class="list">${filtered.map(v=>renderCard(v)).join('')}</div>`;
+  }
+
+  el.innerHTML = html;
+}
+
+function renderCard(v){
+  const isOpen = openCard === v.rank;
+  return `<div class="card ${typeClass(v.type)}${isOpen?' open':''}" onclick="toggle(${v.rank})">
+    <div class="card-top">
+      <div class="rb ${rankClass(v.rank)}">${v.rank}</div>
+      <div class="mid">
+        <div class="vn">${v.name}</div>
+        <div class="vtags">${v.badges.map(b=>`<span class="vtag">${b}</span>`).join('')}</div>
+      </div>
+      <div class="right">
+        <div><span class="score">${v.score}</span> <span class="slabel">AI score</span></div>
+        <span class="type-badge ${typeBadgeClass(v.type)}">${typeLabel(v.type)}</span>
+      </div>
+    </div>
+    <div class="tagline">${v.tagline}</div>
+    <div class="detail">
+      <div class="dgrid">
+        <div class="dblk">
+          <div class="dlbl">Por qué está en el top</div>
+          <div class="dval">${v.why}</div>
+        </div>
+        <div class="dblk">
+          <div class="dlbl">Fortalezas AI</div>
+          ${v.strengths.map(s=>`<div class="dval" style="margin-bottom:3px">· ${s}</div>`).join('')}
+          <div class="dlbl" style="margin-top:8px">Gap / debilidad</div>
+          <div class="dval">${v.gap}</div>
+        </div>
+        <div class="dblk">
+          <div class="dlbl">Caso de uso ideal</div>
+          <div class="dval">${v.usecase}</div>
+          <div class="dlbl" style="margin-top:8px">DSLMs utilizados</div>
+          <div>${v.dslms.map(d=>`<span class="dpill">${d}</span>`).join('')}</div>
+        </div>
+        <div class="dblk">
+          <div class="dlbl">Cobertura ASM</div>
+          <div class="dot-row">${dots(v.coverage)}</div>
+          <div class="dlbl" style="margin-top:8px">Innovación AI</div>
+          <div class="dot-row">${dots(v.innovation)}</div>
+          <div class="dlbl" style="margin-top:8px">Madurez de producto</div>
+          <div class="dot-row">${dots(v.maturity)}</div>
+          <div style="margin-top:10px;font-size:10px;color:var(--color-text-secondary)">Fundado: ${v.founded} · ${v.hq}</div>
+        </div>
+      </div>
+      <div class="cta" onclick="event.stopPropagation();sendPrompt('Analiza en profundidad ${v.name}: arquitectura AI, integraciones clave, casos de uso ASM y diferenciadores frente a competidores')">Ver análisis profundo ↗</div>
+    </div>
+  </div>`;
+}
+
+function toggle(rank){
+  openCard = openCard===rank ? null : rank;
+  render();
+}
+
+function setTab(el, t){
+  activeTab = t;
+  openCard = null;
+  document.querySelectorAll('.tab').forEach(tb=>{
+    tb.classList.remove('on-ext','on-int','on-both');
+  });
+  const cls = t==='ext'?'on-ext':t==='int'?'on-int':'on-both';
+  el.classList.add(cls);
+  render();
+}
+
+render();
+</script>
+
+
+
+
+

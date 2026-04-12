@@ -1,0 +1,494 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+.w{padding:1rem 0;font-family:var(--font-sans)}
+h2.sr{position:absolute;width:1px;height:1px;overflow:hidden}
+.hdr h3{font-size:18px;font-weight:500;color:var(--color-text-primary)}
+.hdr p{font-size:13px;color:var(--color-text-secondary);margin-top:4px;line-height:1.6;margin-bottom:1.25rem}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1.25rem}
+.st{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:10px 12px}
+.sn{font-size:20px;font-weight:500;color:var(--color-text-primary)}
+.sl{font-size:11px;color:var(--color-text-secondary);margin-top:2px}
+.filter-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1rem;align-items:center}
+.filter-lbl{font-size:11px;color:var(--color-text-secondary)}
+.fpill{font-size:11px;padding:4px 10px;border-radius:999px;border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-secondary);cursor:pointer;transition:all .15s}
+.fpill.on{border-color:var(--cc,#534AB7);color:var(--cc,#534AB7);background:var(--cb,#EEEDFE)}
+.criteria-list{display:flex;flex-direction:column;gap:10px}
+.crit{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden;cursor:pointer;transition:border-color .15s}
+.crit:hover{border-color:#7F77DD}
+.crit.open{border-color:#534AB7}
+.crit-top{display:flex;align-items:flex-start;gap:12px;padding:14px 16px}
+.num{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:500;flex-shrink:0;margin-top:1px}
+.crit-body{flex:1;min-width:0}
+.crit-name{font-size:14px;font-weight:500;color:var(--color-text-primary)}
+.crit-sub{font-size:12px;color:var(--color-text-secondary);margin-top:3px;line-height:1.5}
+.crit-right{display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0}
+.peso{font-size:17px;font-weight:500;color:var(--color-text-primary)}
+.peso-lbl{font-size:10px;color:var(--color-text-secondary)}
+.cat-pill{font-size:10px;padding:2px 8px;border-radius:999px}
+.detail{border-top:0.5px solid var(--color-border-tertiary);padding:14px 16px;display:none;background:var(--color-background-secondary)}
+.crit.open .detail{display:block}
+.dgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.dblk{background:var(--color-background-primary);border-radius:var(--border-radius-md);padding:10px 12px}
+.dlbl{font-size:10px;color:var(--color-text-secondary);font-weight:500;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
+.dval{font-size:12px;color:var(--color-text-primary);line-height:1.6}
+.vendors-row{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.vchip{font-size:10px;padding:2px 8px;border-radius:999px;border:0.5px solid var(--color-border-tertiary);color:var(--color-text-secondary)}
+.vchip.top{background:#EEEDFE;color:#3C3489;border-color:#AFA9EC}
+.ok{color:#085041;margin-bottom:3px}
+.ko{color:#A32D2D;margin-bottom:3px}
+.cta{font-size:12px;color:#534AB7;cursor:pointer;display:inline-flex;align-items:center;gap:4px;margin-top:8px}
+.rel-bar{display:flex;gap:2px;margin-top:2px}
+.bar-s{height:4px;flex:1;border-radius:2px}
+.bon{background:#534AB7}
+.boff{background:var(--color-border-tertiary)}
+.diff-badge{display:inline-block;font-size:10px;padding:3px 8px;border-radius:var(--border-radius-md);margin-top:8px;line-height:1.5}
+.scope-row{display:flex;gap:4px;flex-wrap:wrap;margin-top:5px}
+.scope-chip{font-size:10px;padding:2px 7px;border-radius:999px;border:0.5px solid var(--color-border-tertiary);color:var(--color-text-secondary)}
+.scope-chip.iam{background:#E6F1FB;color:#0C447C;border-color:#85B7EB}
+.scope-chip.pam{background:#E1F5EE;color:#085041;border-color:#5DCAA5}
+.scope-chip.both{background:#EEEDFE;color:#3C3489;border-color:#AFA9EC}
+
+/* Benchmark dark-mode normalization */
+:root {
+  color-scheme: dark;
+  --font-sans: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  --color-background-primary: #161b22;
+  --color-background-secondary: #0d1117;
+  --color-border-secondary: #30363d;
+  --color-border-tertiary: #2a313c;
+  --color-text-primary: #e6edf3;
+  --color-text-secondary: #9aa4b2;
+  --border-radius-md: 10px;
+  --border-radius-lg: 14px;
+}
+html, body {
+  background: #0d1117;
+  color: var(--color-text-primary);
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+/* Dark-safe overrides for legacy light badges/tags */
+.b-leader, .bb, .b-deep, .dpill, .dslm-pill, .vchip.top,
+[style*='background:#EEEDFE'], [style*='background: #EEEDFE'] {
+  background: #241a4a !important;
+  color: #e4ddff !important;
+  border-color: #7d6ce0 !important;
+}
+.b-rising, .bi, .b-native,
+[style*='background:#E1F5EE'], [style*='background: #E1F5EE'] {
+  background: #12352e !important;
+  color: #b7f3e1 !important;
+  border-color: #46a08b !important;
+}
+.be, .b-api,
+[style*='background:#E6F1FB'], [style*='background: #E6F1FB'] {
+  background: #132f48 !important;
+  color: #b7ddff !important;
+  border-color: #4f85b5 !important;
+}
+.r1,
+[style*='background:#FAEEDA'], [style*='background: #FAEEDA'] {
+  background: #3a2d0f !important;
+  color: #f0d58d !important;
+  border-color: #a07c2c !important;
+}
+[style*='background:#FAECE7'], [style*='background: #FAECE7'] {
+  background: #3a2015 !important;
+  color: #ffd0bd !important;
+  border-color: #a86145 !important;
+}
+[style*='background:#FBEAF0'], [style*='background: #FBEAF0'] {
+  background: #341d2c !important;
+  color: #f2cfe0 !important;
+  border-color: #9a5f7a !important;
+}
+.ok, [style*='color:#085041'], [style*='color: #085041'] {
+  color: #8fe8cf !important;
+}
+[style*='color:#0C447C'], [style*='color: #0C447C'],
+[style*='color:#185FA5'], [style*='color: #185FA5'] {
+  color: #b7ddff !important;
+}
+[style*='color:#3C3489'], [style*='color: #3C3489'],
+[style*='color:#534AB7'], [style*='color: #534AB7'] {
+  color: #e4ddff !important;
+}
+</style>
+
+<div class="w">
+<h2 class="sr">10 criterios de adopción de IA para vendors IAM/PAM 2026</h2>
+<div class="hdr">
+  <h3>10 criterios de adopción de IA — vendors IAM/PAM 2026</h3>
+  <p>Framework de evaluación para medir la madurez AI-native en plataformas de Identity & Access Management y Privileged Access Management. Cada criterio indica si aplica a IAM, PAM o ambas disciplinas.</p>
+</div>
+
+<div class="stats">
+  <div class="st"><div class="sn">10</div><div class="sl">Criterios</div></div>
+  <div class="st"><div class="sn">5</div><div class="sl">Categorías</div></div>
+  <div class="st"><div class="sn">100%</div><div class="sl">Peso total</div></div>
+  <div class="st"><div class="sn">2026</div><div class="sl">Edición</div></div>
+</div>
+
+<div class="filter-row">
+  <span class="filter-lbl">Categoría:</span>
+  <button class="fpill on" style="--cc:#534AB7;--cb:#EEEDFE" data-cat="all" onclick="setF(this,'all')">Todas</button>
+  <button class="fpill" style="--cc:#185FA5;--cb:#E6F1FB" data-cat="identidad" onclick="setF(this,'identidad')">Identidad & Acceso</button>
+  <button class="fpill" style="--cc:#0F6E56;--cb:#E1F5EE" data-cat="privilegio" onclick="setF(this,'privilegio')">Acceso Privilegiado</button>
+  <button class="fpill" style="--cc:#854F0B;--cb:#FAEEDA" data-cat="riesgo" onclick="setF(this,'riesgo')">Riesgo & Anomalías</button>
+  <button class="fpill" style="--cc:#993C1D;--cb:#FAECE7" data-cat="ciclovida" onclick="setF(this,'ciclovida')">Ciclo de Vida</button>
+  <button class="fpill" style="--cc:#72243E;--cb:#FBEAF0" data-cat="negocio" onclick="setF(this,'negocio')">Negocio & Cumplimiento</button>
+</div>
+
+<div class="criteria-list" id="clist"></div>
+</div>
+
+<script>
+const cats={
+  identidad:{label:"Identidad & Acceso",color:"#185FA5",bg:"#E6F1FB",dark:"#0C447C"},
+  privilegio:{label:"Acceso Privilegiado",color:"#0F6E56",bg:"#E1F5EE",dark:"#085041"},
+  riesgo:{label:"Riesgo & Anomalías",color:"#854F0B",bg:"#FAEEDA",dark:"#633806"},
+  ciclovida:{label:"Ciclo de Vida",color:"#993C1D",bg:"#FAECE7",dark:"#712B13"},
+  negocio:{label:"Negocio & Cumplimiento",color:"#72243E",bg:"#FBEAF0",dark:"#4B1528"}
+};
+
+const criteria=[
+  {
+    id:1, cat:"riesgo", peso:15, scope:"both",
+    name:"Detección de anomalías de comportamiento de identidad con AI continua (UEBA)",
+    sub:"La plataforma modela el comportamiento habitual de cada identidad — horarios, geolocalizaciones, aplicaciones, volumen de datos accedido — y detecta en tiempo real desviaciones que indican compromiso de credencial, insider threat o escalada de privilegios.",
+    por_que:"El 80% de los brechas en 2026 involucran credenciales comprometidas. La diferencia entre una sesión legítima y un atacante usando credenciales robadas no está en la contraseña — está en el comportamiento. Un modelo AI que conoce el patrón exacto de cada identidad detecta al impostador aunque presente credenciales válidas, MFA incluido.",
+    preguntas:[
+      "¿El sistema construye un baseline de comportamiento individual por cada identidad o usa perfiles grupales?",
+      "¿La detección de anomalías funciona en tiempo real o en ciclos batch?",
+      "¿El modelo considera el contexto completo: dispositivo, red, hora, aplicación y volumen?",
+      "¿Las anomalías se correlacionan con riesgo de negocio o solo con señales técnicas?"
+    ],
+    madurez:[
+      "Baseline individual por identidad actualizado en tiempo real",
+      "Detección de anomalías en <60 segundos con contexto multi-dimensional",
+      "Correlación de anomalía de identidad con riesgo de activo y datos accedidos"
+    ],
+    fallo:[
+      "Perfiles de comportamiento por grupo/rol sin granularidad individual",
+      "Detección batch diaria que permite al atacante operar horas sin alerta",
+      "Anomalías basadas solo en señales técnicas sin contexto de negocio"
+    ],
+    vtop:["Okta AI","Silverfort","Microsoft Entra ID"],
+    votros:["CyberArk","BeyondTrust","Saviynt"],
+    rel:5,
+    diferenciador:"El criterio más crítico: detecta el compromiso de identidad que ninguna otra capa de seguridad puede ver."
+  },
+  {
+    id:2, cat:"identidad", peso:14, scope:"iam",
+    name:"Autenticación continua y adaptativa con AI basada en riesgo de sesión",
+    sub:"La plataforma evalúa el riesgo de cada sesión de forma continua — no solo en el momento del login — y eleva dinámicamente los requisitos de autenticación (step-up MFA, re-autenticación, terminación de sesión) cuando detecta señales de riesgo durante la sesión activa.",
+    por_que:"La autenticación tradicional es un evento puntual: correcto o incorrecto. Pero el atacante que compromete una sesión legítima opera después del login. La autenticación continua AI evalúa cada acción dentro de la sesión activa — si el usuario empieza a acceder a datos inusuales 30 minutos después del login, el sistema interviene sin esperar al próximo login.",
+    preguntas:[
+      "¿La evaluación de riesgo es continua durante toda la sesión o solo en el momento de autenticación?",
+      "¿El sistema puede terminar o degradar una sesión activa automáticamente si el riesgo sube?",
+      "¿El step-up MFA se activa de forma proporcional al nivel de riesgo detectado?",
+      "¿El modelo AI considera el riesgo del recurso al que se accede además del comportamiento del usuario?"
+    ],
+    madurez:[
+      "Evaluación de riesgo de sesión en tiempo real con acción automática proporcional",
+      "Step-up MFA contextual sin friccionar sesiones de bajo riesgo",
+      "Terminación automática de sesión con umbral de riesgo configurable"
+    ],
+    fallo:[
+      "Evaluación de riesgo solo en el momento del login sin monitorización de sesión",
+      "MFA estático sin adaptación al riesgo de la acción específica",
+      "Sin capacidad de intervenir en sesiones activas ante cambio de riesgo"
+    ],
+    vtop:["Okta AI","Microsoft Entra ID","Opal Security"],
+    votros:["Silverfort","Strata Identity","BeyondTrust"],
+    rel:5,
+    diferenciador:"Cierra el mayor punto ciego del IAM tradicional: lo que ocurre después del login exitoso."
+  },
+  {
+    id:3, cat:"privilegio", peso:13, scope:"pam",
+    name:"Gestión de acceso privilegiado just-in-time (JIT) con AI de necesidad mínima",
+    sub:"La plataforma otorga acceso privilegiado de forma temporal y mínima usando AI que determina exactamente qué privilegios necesita cada solicitud, durante cuánto tiempo, y revoca automáticamente cuando la tarea concluye — eliminando las cuentas privilegiadas permanentes.",
+    por_que:"Las cuentas privilegiadas permanentes son el objetivo número uno de los atacantes APT: si las comprometen, tienen acceso ilimitado indefinido. El JIT-PAM con AI elimina este vector reduciendo la ventana de exposición de permanente a minutos, y ajustando los privilegios al mínimo necesario para la tarea específica, no a un perfil de rol genérico.",
+    preguntas:[
+      "¿El sistema otorga privilegios JIT automáticamente o requiere flujo de aprobación manual?",
+      "¿La AI determina el nivel mínimo de privilegio necesario para la tarea solicitada?",
+      "¿La revocación de acceso al finalizar la sesión es automática y verificable?",
+      "¿El sistema aprende de patrones de solicitud para agilizar aprobaciones de bajo riesgo?"
+    ],
+    madurez:[
+      "JIT automático con aprobación AI para solicitudes de bajo riesgo en <60 segundos",
+      "Determinación AI del privilegio mínimo necesario por tarea",
+      "Revocación automática verificada al cierre de sesión o expiración de tarea"
+    ],
+    fallo:[
+      "Cuentas privilegiadas permanentes como modelo principal de acceso",
+      "JIT manual con flujos de aprobación que tardan horas",
+      "Privilegios genéricos de rol sin granularidad de tarea específica"
+    ],
+    vtop:["CyberArk (Conjur AI)","Delinea","BeyondTrust"],
+    votros:["Saviynt","Opal Security","Silverfort"],
+    rel:5,
+    diferenciador:"Elimina el activo más valioso de los atacantes APT: las credenciales privilegiadas permanentes."
+  },
+  {
+    id:4, cat:"riesgo", peso:11, scope:"both",
+    name:"Scoring de riesgo de identidad dinámico y accionable en tiempo real",
+    sub:"Cada identidad tiene un score de riesgo actualizado continuamente por AI que agrega señales de comportamiento, contexto de dispositivo, postura de seguridad del endpoint, inteligencia de amenazas externa y actividad de acceso reciente en una métrica unificada y accionable.",
+    por_que:"Un score de riesgo estático basado en el rol o departamento es un proxy pobre del riesgo real. El score dinámico AI refleja el estado actual de cada identidad: si el endpoint del usuario está comprometido, si sus credenciales aparecen en un data breach, si ha accedido a datos inusuales en las últimas horas. Este score debe activar políticas de acceso de forma automática.",
+    preguntas:[
+      "¿El score de riesgo se actualiza en tiempo real con cada señal nueva o en batch periódico?",
+      "¿Qué señales incorpora: comportamiento, dispositivo, TI externa, historial de incidentes?",
+      "¿El score activa políticas de acceso automáticamente (deniega, step-up, restringe)?",
+      "¿El analista puede ver qué factores componen el score para cada identidad?"
+    ],
+    madurez:[
+      "Score actualizado en tiempo real con señales multi-dimensionales",
+      "Activación automática de políticas de acceso basadas en umbral de score",
+      "Explicabilidad completa del score por identidad para auditoría"
+    ],
+    fallo:[
+      "Score estático basado en rol/departamento sin señales dinámicas",
+      "Score calculado en batch diario sin impacto en acceso en tiempo real",
+      "Score opaco sin explicabilidad de factores para el analista"
+    ],
+    vtop:["Silverfort","Okta AI","Microsoft Entra ID"],
+    votros:["CyberArk","Saviynt","Trustle"],
+    rel:5,
+    diferenciador:"Convierte el IAM/PAM en una capa de control dinámica en lugar de un sistema de permisos estático."
+  },
+  {
+    id:5, cat:"ciclovida", peso:10, scope:"iam",
+    name:"Aprovisionamiento y desaprovisionamiento inteligente con AI de ciclo de vida",
+    sub:"La plataforma usa AI para automatizar el ciclo de vida completo de las identidades: desde el aprovisionamiento inicial con el perfil de acceso mínimo correcto, hasta la detección y eliminación de accesos huérfanos, duplicados y cuentas de empleados que ya no están en la organización.",
+    por_que:"El 35% de las cuentas en una organización típica son huérfanas o tienen más privilegios de los necesarios — son la huella de cambios de rol, bajas y proyectos terminados nunca limpiados. Cada cuenta huérfana es un vector de ataque latente. La AI que mantiene el ciclo de vida de forma continua reduce esta superficie de exposición de forma automática.",
+    preguntas:[
+      "¿El sistema detecta y elimina automáticamente cuentas huérfanas sin intervención manual?",
+      "¿Cuando un empleado cambia de rol, los accesos del rol anterior se revocan automáticamente?",
+      "¿La AI determina el perfil de acceso inicial correcto basándose en el rol y contexto del nuevo empleado?",
+      "¿Hay detección automática de accesos que ya no se usan aunque la cuenta siga activa?"
+    ],
+    madurez:[
+      "Detección y propuesta de eliminación de cuentas huérfanas en tiempo real",
+      "Revocación automática de accesos previos al cambiar de rol",
+      "Acceso inicial determinado por AI basado en peers del mismo rol y contexto"
+    ],
+    fallo:[
+      "Revisiones manuales periódicas de cuentas huérfanas (trimestrales/anuales)",
+      "Cambios de rol requieren intervención manual del helpdesk para revocar accesos anteriores",
+      "Aprovisionamiento inicial basado en templates de rol fijos sin personalización AI"
+    ],
+    vtop:["Saviynt","Okta AI","Microsoft Entra ID"],
+    votros:["Trustle","Opal Security","Delinea"],
+    rel:4,
+    diferenciador:"Resuelve el problema silencioso del IAM: la acumulación de privilegios que nadie limpia."
+  },
+  {
+    id:6, cat:"privilegio", peso:10, scope:"pam",
+    name:"Análisis AI de sesiones privilegiadas con detección de comportamiento malicioso en tiempo real",
+    sub:"La plataforma monitoriza y analiza en tiempo real el contenido de las sesiones privilegiadas — comandos ejecutados, archivos accedidos, aplicaciones lanzadas — usando AI para detectar comportamiento malicioso o fuera del patrón habitual y terminando la sesión automáticamente si es necesario.",
+    por_que:"Grabar sesiones privilegiadas para análisis forense posterior es el estándar del PAM tradicional. Pero si el administrador malintencionado o comprometido ejecuta el comando destructivo, la grabación solo sirve para el post-mortem. El análisis en tiempo real con AI permite intervenir antes de que se complete la acción dañina — no solo documentarla.",
+    preguntas:[
+      "¿El sistema analiza el contenido de las sesiones privilegiadas en tiempo real o solo las graba?",
+      "¿Puede terminar una sesión privilegiada automáticamente ante comportamiento anómalo?",
+      "¿La AI distingue entre administración legítima y acciones potencialmente maliciosas?",
+      "¿El análisis de sesiones incluye comandos en shell, consultas a BBDD y acciones de GUI?"
+    ],
+    madurez:[
+      "Análisis de contenido de sesión en tiempo real con acción automática",
+      "Terminación automática de sesión ante umbral de riesgo configurable",
+      "Cobertura de sesiones shell, GUI, RDP, database y cloud console"
+    ],
+    fallo:[
+      "Solo grabación de sesiones para revisión forense posterior sin análisis real-time",
+      "Análisis de sesión solo disponible post-sesión, no durante la misma",
+      "Sin capacidad de terminación automática ante comportamiento malicioso"
+    ],
+    vtop:["CyberArk","BeyondTrust","Delinea"],
+    votros:["Saviynt","Silverfort","Opal Security"],
+    rel:4,
+    diferenciador:"Cambia el PAM de herramienta forense a capa de prevención activa en tiempo real."
+  },
+  {
+    id:7, cat:"identidad", peso:9, scope:"iam",
+    name:"Detección y gobierno de identidades no humanas (NHI) con AI",
+    sub:"La plataforma descubre, clasifica y monitoriza automáticamente las identidades no humanas — service accounts, API keys, tokens OAuth, secretos, identidades de workloads cloud — aplicando los mismos controles de riesgo AI que a las identidades humanas.",
+    por_que:"En 2026 las identidades no humanas superan a las humanas en ratio 45:1 en entornos cloud-native. Los atacantes han pivotado masivamente hacia NHIs porque suelen tener más privilegios, nunca caducan y nadie las monitoriza. Un IAM AI-native sin gobierno de NHIs tiene un punto ciego masivo que cubre la mayor superficie de ataque de identidad moderna.",
+    preguntas:[
+      "¿El sistema descubre automáticamente todas las NHIs sin configuración manual previa?",
+      "¿Aplica scoring de riesgo a las NHIs con los mismos criterios que a identidades humanas?",
+      "¿Detecta NHIs con privilegios excesivos, sin rotación de secretos o sin propietario conocido?",
+      "¿Hay integración con secretos managers (HashiCorp Vault, AWS Secrets Manager) para rotación AI-driven?"
+    ],
+    madurez:[
+      "Discovery automático de NHIs en entornos multi-cloud y on-prem",
+      "Scoring de riesgo AI para NHIs igual de granular que para identidades humanas",
+      "Rotación automática de secretos sin propietario o con riesgo elevado"
+    ],
+    fallo:[
+      "Gobierno de NHIs como módulo adicional de pago sin integración en el motor principal",
+      "Discovery de NHIs solo en directorios conocidos sin cobertura de cloud workloads",
+      "Sin rotación automática de secretos ni detección de NHIs huérfanas"
+    ],
+    vtop:["Opal Security","Silverfort","CyberArk (Secrets Mgmt)"],
+    votros:["Saviynt","Trustle","Microsoft Entra Workload ID"],
+    rel:4,
+    diferenciador:"La frontera más nueva y crítica del IAM: las NHIs son el vector de ataque de más rápido crecimiento y menos gobernado."
+  },
+  {
+    id:8, cat:"ciclovida", peso:8, scope:"both",
+    name:"Revisiones de acceso automatizadas con AI (Certification Campaigns inteligentes)",
+    sub:"La plataforma conduce revisiones de acceso periódicas donde la AI pre-analiza cada acceso a revisar y hace una recomendación de certificar o revocar basada en uso real, comparación con peers y cambios de contexto del usuario — reduciendo la carga de revisión manual de los responsables a casos realmente dudosos.",
+    por_que:"Las campañas de certificación de acceso tradicionales son un teatro de cumplimiento: los managers aprueban cientos de accesos sin revisarlos realmente porque no tienen tiempo. La AI que pre-filtra — 'este acceso no se ha usado en 90 días y el usuario cambió de departamento, recomienda revocar' — convierte la revisión en una tarea de excepciones que el manager sí puede hacer con criterio.",
+    preguntas:[
+      "¿La AI hace recomendaciones de certificar/revocar con justificación antes de que el manager revise?",
+      "¿Las recomendaciones se basan en uso real del acceso, comparación con peers y cambios de rol?",
+      "¿El manager solo necesita revisar las excepciones donde la AI tiene baja confianza?",
+      "¿El sistema aprende de las decisiones pasadas del manager para mejorar futuras recomendaciones?"
+    ],
+    madurez:[
+      "Recomendaciones AI con justificación para >85% de los accesos a revisar",
+      "Campañas reducidas a revisión de excepciones por el manager",
+      "Aprendizaje de decisiones pasadas para personalizar recomendaciones futuras"
+    ],
+    fallo:[
+      "Campañas de certificación manuales al 100% sin recomendaciones AI",
+      "Recomendaciones genéricas sin análisis de uso real ni comparación con peers",
+      "Sin aprendizaje de decisiones históricas del manager"
+    ],
+    vtop:["Saviynt","Trustle","Microsoft Entra ID Governance"],
+    votros:["Okta AI","CyberArk","Opal Security"],
+    rel:3,
+    diferenciador:"Transforma el cumplimiento de teatro a control real: convierte 500 clics de aprobación automática en 20 decisiones razonadas."
+  },
+  {
+    id:9, cat:"negocio", peso:6, scope:"both",
+    name:"Integración con ITDR y respuesta automática ante compromiso de identidad",
+    sub:"La plataforma se integra nativamente con capacidades de Identity Threat Detection & Response (ITDR), ejecutando respuestas automáticas ante señales de compromiso — reset forzado de credenciales, revocación de sesiones, cuarentena de acceso — sin depender de un SOAR o EDR externo para la acción.",
+    por_que:"Detectar que una identidad está comprometida sin tener capacidad de respuesta inmediata es solo la mitad del valor. El tiempo entre detección y contención es el que determina el impacto del incidente. La integración nativa IAM/PAM + ITDR permite que la misma plataforma que detecta ejecute la respuesta en segundos, sin depender de una cadena de integración frágil con herramientas externas.",
+    preguntas:[
+      "¿El sistema puede revocar sesiones activas, resetear credenciales y restringir acceso de forma autónoma?",
+      "¿La respuesta ante compromiso de identidad es nativa o requiere integración con SOAR/EDR externo?",
+      "¿El tiempo entre detección de compromiso y contención automática está documentado?",
+      "¿Hay configuración de respuesta proporcional al nivel de privilegio de la identidad comprometida?"
+    ],
+    madurez:[
+      "Respuesta autónoma nativa: revocación de sesión + reset de credencial en <30 segundos",
+      "Respuesta proporcional al nivel de privilegio de la identidad afectada",
+      "Sin dependencia de SOAR externo para ejecutar la contención"
+    ],
+    fallo:[
+      "Respuesta ante compromiso requiere integración manual con SOAR o EDR externo",
+      "Contención de identidad comprometida como proceso manual del analista",
+      "Sin diferenciación de respuesta por nivel de privilegio de la identidad"
+    ],
+    vtop:["Silverfort","CyberArk","Microsoft Entra ID"],
+    votros:["Okta AI","BeyondTrust","Delinea"],
+    rel:4,
+    diferenciador:"Cierra el ciclo detect-respond dentro del mismo stack de identidad sin fricción de integración."
+  },
+  {
+    id:10, cat:"negocio", peso:4, scope:"both",
+    name:"Cumplimiento regulatorio AI-automated y auditoría de accesos con trazabilidad completa",
+    sub:"La plataforma genera automáticamente evidencia de cumplimiento para marcos regulatorios (SOX, NIS2, DORA, GDPR, PCI-DSS) mediante AI que mapea cada política de acceso a controles regulatorios específicos y produce reportes de auditoría listos para presentar a auditores externos sin trabajo manual.",
+    por_que:"El coste de auditoría de accesos en una empresa con 10,000 identidades puede superar las 2,000 horas-persona anuales de trabajo manual. La AI que mapea automáticamente el estado de accesos a requisitos regulatorios y genera la evidencia en formato auditor reduce este coste en un 80% y elimina el riesgo de error humano en la preparación de evidencia regulatoria.",
+    preguntas:[
+      "¿El sistema genera reportes de auditoría en formato regulatorio sin trabajo manual?",
+      "¿La AI mapea automáticamente las políticas de acceso a controles específicos de cada framework?",
+      "¿Hay trazabilidad completa e inmutable de cada cambio de acceso para auditoría forense?",
+      "¿Los reportes son suficientemente detallados para auditores externos de SOX/NIS2/DORA?"
+    ],
+    madurez:[
+      "Reportes de cumplimiento AI-generados listos para auditor externo sin edición manual",
+      "Mapeo automático de políticas a controles de SOX, NIS2, DORA, PCI-DSS",
+      "Trazabilidad inmutable e íntegra de todos los cambios de acceso"
+    ],
+    fallo:[
+      "Evidencia de auditoría generada manualmente exportando datos y formateando en Excel",
+      "Sin mapeo automático a frameworks regulatorios específicos",
+      "Trazabilidad de cambios de acceso parcial o con gaps en entornos cloud"
+    ],
+    vtop:["Saviynt","Trustle","Microsoft Entra ID Governance"],
+    votros:["CyberArk","Okta AI","BeyondTrust"],
+    rel:3,
+    diferenciador:"Convierte el cumplimiento de coste operativo puro en ventaja competitiva: el auditor recibe más evidencia con menos trabajo del equipo."
+  }
+];
+
+let activeFilter="all";
+let openId=null;
+
+function bars(n,max=5){return Array(max).fill(0).map((_,i)=>`<div class="bar-s ${i<n?'bon':'boff'}"></div>`).join('')}
+function scopeChip(s){
+  if(s==='iam') return '<span class="scope-chip iam">IAM</span>';
+  if(s==='pam') return '<span class="scope-chip pam">PAM</span>';
+  return '<span class="scope-chip both">IAM</span><span class="scope-chip both" style="background:#EEEDFE;color:#3C3489;border-color:#AFA9EC">PAM</span>';
+}
+
+function setF(el,cat){
+  activeFilter=cat; openId=null;
+  document.querySelectorAll('.fpill').forEach(p=>p.classList.remove('on'));
+  el.classList.add('on'); render();
+}
+
+function toggle(id){openId=openId===id?null:id; render();}
+
+function render(){
+  const el=document.getElementById("clist");
+  const list=activeFilter==="all"?criteria:criteria.filter(c=>c.cat===activeFilter);
+  el.innerHTML=list.map(c=>{
+    const cat=cats[c.cat];
+    const isOpen=openId===c.id;
+    return `<div class="crit${isOpen?' open':''}" onclick="toggle(${c.id})">
+      <div class="crit-top">
+        <div class="num" style="background:${cat.bg};color:${cat.dark}">${c.id}</div>
+        <div class="crit-body">
+          <div class="crit-name">${c.name}</div>
+          <div class="crit-sub">${c.sub}</div>
+          <div class="scope-row" style="margin-top:5px">${scopeChip(c.scope)}</div>
+        </div>
+        <div class="crit-right">
+          <div><span class="peso">${c.peso}%</span><div class="peso-lbl">peso</div></div>
+          <span class="cat-pill" style="background:${cat.bg};color:${cat.dark}">${cat.label}</span>
+        </div>
+      </div>
+      <div class="detail">
+        <div class="dgrid">
+          <div class="dblk">
+            <div class="dlbl">Por qué es crítico</div>
+            <div class="dval">${c.por_que}</div>
+          </div>
+          <div class="dblk">
+            <div class="dlbl">Preguntas de evaluación al vendor</div>
+            ${c.preguntas.map(p=>`<div class="dval" style="margin-bottom:4px">· ${p}</div>`).join('')}
+          </div>
+          <div class="dblk">
+            <div class="dlbl">Señales de madurez AI</div>
+            ${c.madurez.map(s=>`<div class="dval ok">✓ ${s}</div>`).join('')}
+            <div class="dlbl" style="margin-top:8px">Señales de alerta</div>
+            ${c.fallo.map(s=>`<div class="dval ko">✗ ${s}</div>`).join('')}
+          </div>
+          <div class="dblk">
+            <div class="dlbl">Vendors que lideran este criterio</div>
+            <div class="vendors-row">${c.vtop.map(v=>`<span class="vchip top">${v}</span>`).join('')}</div>
+            <div class="dlbl" style="margin-top:8px">Vendors con adopción parcial</div>
+            <div class="vendors-row">${c.votros.map(v=>`<span class="vchip">${v}</span>`).join('')}</div>
+            <div class="dlbl" style="margin-top:10px">Relevancia en RFP</div>
+            <div class="rel-bar">${bars(c.rel)}</div>
+            <div class="diff-badge" style="background:${cat.bg};color:${cat.dark}">${c.diferenciador}</div>
+          </div>
+        </div>
+        <div class="cta" onclick="event.stopPropagation();sendPrompt('Profundiza en el criterio ${c.id} de IAM/PAM: ${c.name} — cómo evaluarlo en un RFP, qué demos pedir al vendor y casos de uso reales 2026')">Ver análisis profundo ↗</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+render();
+</script>
+
+
+
+
+
