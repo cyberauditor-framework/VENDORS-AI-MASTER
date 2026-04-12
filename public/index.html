@@ -1258,7 +1258,7 @@ const I18N = {
     failedOpenVendor: 'No se pudo abrir el analisis del vendor: {message}',
     goToAnalyze: 'Ir a Analizar',
     cannotConnectServer: 'No se puede conectar al servidor',
-    ensureServerRunning: 'Asegurate de que el servidor Vendors AI Master esta corriendo en el puerto 3000.',
+    ensureServerRunning: 'Asegurate de que el servidor Vendors AI Master este corriendo en http://localhost:3232.',
     unknown: 'Desconocido',
     noCriteriaData: 'No hay datos de criterios disponibles',
     scoringCriteria: 'Criterios de scoring',
@@ -1501,7 +1501,7 @@ const I18N = {
     failedOpenVendor: 'Failed to open vendor analysis: {message}',
     goToAnalyze: 'Go to Analyze',
     cannotConnectServer: 'Cannot connect to server',
-    ensureServerRunning: 'Make sure the Vendors AI Master server is running on port 3000.',
+    ensureServerRunning: 'Make sure the Vendors AI Master server is running at http://localhost:3232.',
     unknown: 'Unknown',
     noCriteriaData: 'No criteria data available',
     scoringCriteria: 'Scoring criteria',
@@ -1848,10 +1848,53 @@ function localizeAcquisitionMode(value) {
 // ══════════════════════════════════════════════════════════════════════════
 //  API helpers
 // ══════════════════════════════════════════════════════════════════════════
+const DEFAULT_API_ORIGIN = 'http://localhost:3232';
+
+function getApiOrigin() {
+  return window.location.protocol === 'file:' ? DEFAULT_API_ORIGIN : '';
+}
+
+function apiUrl(path) {
+  if (/^https?:\/\//i.test(path)) return path;
+  const origin = getApiOrigin();
+  return origin ? new URL(path, origin).toString() : path;
+}
+
+function networkErrorMessage() {
+  if (state.language === 'en') {
+    if (window.location.protocol === 'file:') {
+      return 'The UI is open as a local file. Start the server with "npm run server" and open http://localhost:3232.';
+    }
+    return 'Cannot reach the API. Start the server with "npm run server" and open http://localhost:3232.';
+  }
+
+  if (window.location.protocol === 'file:') {
+    return 'La UI esta abierta como archivo local. Inicia el servidor con "npm run server" y abre http://localhost:3232.';
+  }
+
+  return 'No se puede conectar con la API. Inicia el servidor con "npm run server" y abre http://localhost:3232.';
+}
+
 async function api(path, opts = {}) {
-  const r = await fetch(path, opts);
-  if (!r.ok) throw new Error(await r.text());
-  return r.json();
+  try {
+    const r = await fetch(apiUrl(path), opts);
+    if (!r.ok) {
+      const text = await r.text();
+      throw new Error(text || `HTTP ${r.status}`);
+    }
+
+    const contentType = r.headers.get('content-type') || '';
+    return contentType.includes('application/json') ? r.json() : r.text();
+  } catch (err) {
+    if (err instanceof TypeError) {
+      throw new Error(networkErrorMessage());
+    }
+    throw err;
+  }
+}
+
+function openEventSource(path) {
+  return new EventSource(apiUrl(path));
 }
 
 // ══════════════════════════════════════════════════════════════════════════
@@ -3610,7 +3653,7 @@ function replaceThinkBubble(thinkId, classes, html) {
 function streamMitreCoverageSSE(jobId, thinkId) {
   return new Promise((resolve) => {
     const steps = [];
-    const es = new EventSource(`/api/mitre/coverage/${jobId}/progress`);
+    const es = openEventSource(`/api/mitre/coverage/${jobId}/progress`);
 
     es.addEventListener('conversation', e => {
       try {
@@ -3846,7 +3889,7 @@ async function startAnalysis() {
 function subscribeSSE(jobId, vendorName) {
   const feed = document.getElementById('steps-feed');
   const statusText = document.getElementById('progress-status-text');
-  const es = new EventSource(`/api/analyze/${jobId}/progress`);
+  const es = openEventSource(`/api/analyze/${jobId}/progress`);
 
   es.addEventListener('status', e => {
     const d = JSON.parse(e.data);
@@ -4380,7 +4423,7 @@ async function checkLinks(links) {
   });
 
   try {
-    const res = await fetch('/api/check-urls', {
+    const res = await fetch(apiUrl('/api/check-urls'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ urls: normalized }),
@@ -4646,7 +4689,7 @@ async function validateUrlsForMarkdown(urls) {
 
     for (let i = 0; i < urls.length; i += 30) {
       const batch = urls.slice(i, i + 30);
-      const res = await fetch('/api/check-urls', {
+      const res = await fetch(apiUrl('/api/check-urls'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ urls: batch }),
