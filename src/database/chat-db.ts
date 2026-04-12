@@ -16,6 +16,7 @@
 import * as path from 'path';
 import * as fs   from 'fs';
 import { MitreCoverageReport } from '../types/mitre-coverage';
+import { TtpCoverage } from '../types/mitre-coverage';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { DatabaseSync } = require('node:sqlite') as typeof import('node:sqlite');
@@ -121,6 +122,13 @@ export interface VendorStat {
   latestTtpCount: number;
   latestGapCount: number;
   scoreHistory: number[];
+}
+
+export interface SavedMergedSelection {
+  conversationId: number;
+  messageId: number;
+  reportId: number;
+  report: MitreCoverageReport;
 }
 
 // ─── Conversation CRUD ────────────────────────────────────────────────────────
@@ -296,54 +304,109 @@ export function deleteVendorReports(vendor: string): number {
 export function getMergedVendorReport(vendor: string): MitreCoverageReport | null {
   const all = getVendorReports(vendor);
   const valid = all.filter(r => !r.insufficient && r.report.ttpsAddressed?.length > 0);
+  return buildMergedReportFromStored(vendor, valid, {
+    modeLabel: 'Análisis acumulado',
+    includeLatestSummary: true,
+  });
+}
+
+/** Builds a merged report from a user-selected subset of stored run IDs. */
+export function getMergedVendorReportFromSelection(
+  vendor: string,
+  reportIds: number[],
+): MitreCoverageReport | null {
+  const ids = [...new Set(reportIds.filter(id => Number.isInteger(id) && id > 0))];
+  if (ids.length < 2) return null;
+
+  const selectedRows = getChatDb().prepare(
+    `SELECT * FROM coverage_reports WHERE vendor = ? AND id = ? ORDER BY created_at DESC`,
+  );
+
+  const selected = ids
+    .map(id => selectedRows.get(vendor, id) as any)
+    .filter(Boolean)
+    .map(rowToReport)
+    .filter(r => !r.insufficient && r.report.ttpsAddressed?.length > 0);
+
+  return buildMergedReportFromStored(vendor, selected, {
+    modeLabel: 'Unificacion seleccionada',
+    includeLatestSummary: false,
+  });
+}
+
+/** Persists a user-approved merged report from selected run IDs as a new stored analysis. */
+export function saveMergedVendorSelection(
+  vendor: string,
+  reportIds: number[],
+): SavedMergedSelection | null {
+  const merged = getMergedVendorReportFromSelection(vendor, reportIds);
+  if (!merged) return null;
+
+  const conversationId = createConversation(`${vendor} — merged selection`);
+  const messageText =
+    merged.summary ||
+    `Merged MITRE ATT&CK coverage for ${vendor} from selected historical analyses.`;
+  const messageId = addMessage(conversationId, 'agent', messageText, vendor);
+  const reportId = saveCoverageReport(messageId, conversationId, merged);
+
+  return {
+    conversationId,
+    messageId,
+    reportId,
+    report: merged,
+  };
+}
+
+function buildMergedReportFromStored(
+  vendor: string,
+  valid: StoredCoverageReport[],
+  opts: { modeLabel: string; includeLatestSummary: boolean },
+): MitreCoverageReport | null {
   if (valid.length === 0) return null;
 
-  // Build TTP map: newest overwrites oldest, but never overwrite a known level with unknown
-  const ttpMap = new Map<string, import('../types/mitre-coverage').TtpCoverage>();
-  for (const stored of [...valid].reverse()) {          // oldest first
+  const ttpMap = new Map<string, TtpCoverage>();
+  for (const stored of [...valid].reverse()) {
     for (const ttp of stored.report.ttpsAddressed ?? []) {
       const existing = ttpMap.get(ttp.techniqueId);
       if (!existing || existing.coverageLevel === 'unknown') {
-        ttpMap.set(ttp.techniqueId, ttp);               // any level beats unknown
+        ttpMap.set(ttp.techniqueId, ttp);
       } else if (ttp.coverageLevel !== 'unknown') {
-        ttpMap.set(ttp.techniqueId, ttp);               // newer known beats older known
+        ttpMap.set(ttp.techniqueId, ttp);
       }
     }
   }
 
-  // Merge gaps: union minus techniques we now cover
   const covered = new Set(
     [...ttpMap.values()]
       .filter(t => t.coverageLevel === 'full' || t.coverageLevel === 'partial')
       .map(t => t.techniqueId),
   );
+
   const allGaps = new Set<string>();
   for (const stored of valid) {
     for (const g of stored.report.coverageGaps ?? []) allGaps.add(g);
   }
+
   const filteredGaps = [...allGaps].filter(g => {
     const m = g.match(/^(T\d[\d.]*)/i);
     return !m || !covered.has(m[1].toUpperCase());
   });
 
-  // Average score across all valid runs
   const avgScore = valid.reduce((s, r) => s + r.overallScore, 0) / valid.length;
-
-  // De-duplicated sources
   const sources = [...new Set(valid.flatMap(r => r.report.sourcesConsulted ?? []))];
-
   const latest = valid[0].report;
+
   return {
     vendor,
-    analysisDate:         latest.analysisDate,
-    ttpsAddressed:        [...ttpMap.values()],
-    coverageGaps:         filteredGaps,
+    analysisDate: new Date().toISOString(),
+    ttpsAddressed: [...ttpMap.values()],
+    coverageGaps: filteredGaps,
     overallCoverageScore: Math.round(avgScore * 10) / 10,
     summary:
-      `Análisis acumulado de ${valid.length} ejecución${valid.length > 1 ? 'es' : ''}. ` +
-      (latest.summary ? `Último: ${latest.summary}` : ''),
-    sourcesConsulted:     sources,
-    insufficientInfo:     false,
+      `${opts.modeLabel} de ${valid.length} ejecucion${valid.length > 1 ? 'es' : ''}. ` +
+      (opts.includeLatestSummary && latest.summary ? `Ultimo: ${latest.summary}` : ''),
+    sourcesConsulted: sources,
+    insufficientInfo: false,
   };
 }
 

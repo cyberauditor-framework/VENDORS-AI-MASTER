@@ -40,6 +40,7 @@ import {
   getVendorReports,
   deleteVendorReports,
   getMergedVendorReport,
+  saveMergedVendorSelection,
 } from '../database/chat-db';
 
 // ─── DB Init ──────────────────────────────────────────────────────────────────
@@ -623,6 +624,35 @@ app.get('/api/mitre/vendor-stats/:vendor/merged', (req: Request, res: Response) 
   const merged = getMergedVendorReport(vendor);
   if (!merged) { res.status(404).json({ error: 'No valid analyses found for this vendor' }); return; }
   res.json(merged);
+});
+
+// Persist a merged report from a user-selected subset of runs
+app.post('/api/mitre/vendor-stats/:vendor/merge-selection', (req: Request, res: Response) => {
+  const vendor = decodeURIComponent(String(req.params.vendor));
+  const reportIds = Array.isArray(req.body?.reportIds)
+    ? req.body.reportIds
+      .map((x: unknown) => Number(x))
+      .filter((n: number) => Number.isInteger(n) && n > 0)
+    : [];
+
+  if (reportIds.length < 2) {
+    res.status(400).json({ error: 'At least 2 valid reportIds are required' });
+    return;
+  }
+
+  const saved = saveMergedVendorSelection(vendor, reportIds);
+  if (!saved) {
+    res.status(404).json({ error: 'Unable to merge selected reports for this vendor' });
+    return;
+  }
+
+  res.json({
+    ok: true,
+    conversationId: saved.conversationId,
+    messageId: saved.messageId,
+    reportId: saved.reportId,
+    report: saved.report,
+  });
 });
 
 // Delete all analyses for one vendor
