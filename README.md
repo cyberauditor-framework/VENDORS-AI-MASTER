@@ -188,8 +188,8 @@ Muestra estadisticas basicas de base de datos.
 1. Se crea contexto con prompt de sistema y tarea de usuario.
 2. El LLM decide entre responder en texto o invocar herramientas.
 3. Si invoca herramienta:
-- `search_web(query)` busca fuentes.
-- `scrape_url(url)` extrae contenido legible de paginas.
+  - `search_web(query)` busca fuentes.
+  - `scrape_url(url)` extrae contenido legible de paginas.
 4. Los resultados de herramientas se inyectan de vuelta a la conversacion.
 5. El agente itera hasta recibir JSON final estructurado.
 6. Se parsea el JSON con defaults defensivos.
@@ -308,7 +308,7 @@ Base URL: `http://localhost:3232`
 
 - `GET /api/vendors`
   - Consulta con filtros por query params:
-  - `category`, `minScore`, `maxScore`, `region`, `acquisitionMode`, `marketPosition`, `sortBy`, `sortOrder`, `limit`, `offset`.
+    - `category`, `minScore`, `maxScore`, `region`, `acquisitionMode`, `marketPosition`, `sortBy`, `sortOrder`, `limit`, `offset`.
 
 ### Analisis
 
@@ -536,9 +536,7 @@ Si todos los modelos del probe salen `ZERO` o `ERROR`, el problema está en el r
 - Evaluar modelos de embeddings dedicados (nomic-embed-text-v1.5 vs mxbai-embed-large-v1) con métricas de recall sobre consultas MITRE representativas.
 - Implementar actualización periódica automatizada del bundle STIX (cron o script CI).
 
-## 19. Licencia
+## 18. Licencia
 
 No se detecta licencia explicita en este repositorio.
 Si vas a distribuirlo, añade un archivo `LICENSE` con los terminos deseados.
-#   V E N D O R S - A I - M A S T E R  
- 
