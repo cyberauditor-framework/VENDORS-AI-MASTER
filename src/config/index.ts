@@ -50,6 +50,5 @@ export const searchConfig = {
   rateLimitMs: numericEnv('SEARCH_RATE_LIMIT_MS', 1500),
   requestTimeoutMs: numericEnv('SEARCH_REQUEST_TIMEOUT_MS', 10_000),
   scrapeTimeoutMs: numericEnv('WEB_SCRAPE_TIMEOUT_MS', 8_000),
-  userAgent:
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+  userAgent: process.env.SEARCH_USER_AGENT?.trim() || 'Mozilla/5.0',
 };

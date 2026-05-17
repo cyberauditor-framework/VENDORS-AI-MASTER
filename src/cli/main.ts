@@ -346,7 +346,7 @@ async function interactiveMenu(): Promise<void> {
         choices: [
           { name: 'Analyse vendors', value: 'analyze' },
           { name: 'Query database', value: 'query' },
-          { name: 'MITRE ATT&CK — Vendor coverage chatbot', value: 'mitre-chat' },
+          { name: 'MITRE ATT&CK — Local RAG chatbot', value: 'mitre-chat' },
           { name: 'Export report (Markdown)', value: 'export-md' },
           { name: 'Generate HTML dashboard', value: 'export-html' },
           { name: 'View ASCII charts', value: 'charts' },
@@ -394,7 +394,7 @@ async function interactiveMenu(): Promise<void> {
       results.forEach(r => printAsciiRanking(r));
     } else if (action === 'mitre-chat') {
       await checkLmStudio();
-      await mitreCoverageChat();
+      await mitreLocalRagChat();
     } else if (action === 'status') {
       const categories = getAllCategories();
       console.log(chalk.cyan('\n  Database Status\n'));
@@ -408,43 +408,46 @@ async function interactiveMenu(): Promise<void> {
   }
 }
 
-// ─── MITRE Coverage Chatbot ───────────────────────────────────────────────────
+// ─── MITRE Local RAG Chatbot ─────────────────────────────────────────────────
 
 /**
- * Conversational chatbot that wraps MitreCoverageAgent.
+ * Conversational chatbot that queries only the local MITRE ATT&CK RAG index.
  *
- * Responsibilities:
- *  - NLU: extract vendor name from free-text input; ask for clarification when ambiguous.
- *  - Loop control: enforce 3-attempt limit per query; surface "Unable to find sufficient
- *    information after three attempts." when the agent returns insufficientInfo.
- *  - Response formatting: render TTP table, gaps, score, and summary.
- *  - Session memory: tracks last vendor so follow-up queries ("what about phishing?")
- *    are resolved without re-asking.
- *  - Error handling: catches LM Studio failures and reports them gracefully.
+ * This mode does not perform vendor extraction, web search, or scraping.
+ * Every user message is executed as a direct RAG query against the local
+ * knowledge base built with `npm run mitre:ingest`.
  */
-async function mitreCoverageChat(): Promise<void> {
+async function mitreLocalRagChat(): Promise<void> {
   console.log(chalk.cyan('\n  ╔══════════════════════════════════════════════════════╗'));
-  console.log(chalk.cyan('  ║  MITRE ATT&CK Vendor Coverage Chatbot               ║'));
-  console.log(chalk.cyan('  ║  Ask about any vendor\'s ATT&CK technique coverage   ║'));
+  console.log(chalk.cyan('  ║  MITRE ATT&CK Local RAG Chatbot                     ║'));
+  console.log(chalk.cyan('  ║  Ask about techniques, tactics, malware, groups     ║'));
   console.log(chalk.cyan('  ║  Type "exit" or leave blank to return to menu        ║'));
   console.log(chalk.cyan('  ╚══════════════════════════════════════════════════════╝\n'));
   console.log(chalk.dim('  Examples:'));
-  console.log(chalk.dim('    "How does Microsoft address phishing attacks?"'));
-  console.log(chalk.dim('    "Show Palo Alto Networks ATT&CK coverage"'));
-  console.log(chalk.dim('    "Cisco lateral movement defences"\n'));
+  console.log(chalk.dim('    "Explain T1059 and common mitigations"'));
+  console.log(chalk.dim('    "Techniques used for credential access"'));
+  console.log(chalk.dim('    "What ATT&CK groups use ransomware-related TTPs?"\n'));
 
-  const agent = new MitreCoverageAgent(agentConfig);
+  const rag = new MitreRag();
+  try {
+    await rag.init();
+  } catch {
+    console.log(chalk.red('  Failed to initialise MITRE RAG. Run mitre:ingest first.\n'));
+    return;
+  }
 
-  // Known vendor names for NLU extraction
-  const KNOWN_VENDORS = [
-    'Microsoft', 'Cisco', 'Palo Alto Networks', 'CrowdStrike', 'Splunk',
-    'IBM', 'Fortinet', 'Check Point', 'SentinelOne', 'Trend Micro',
-    'Broadcom', 'Symantec', 'McAfee', 'Trellix', 'Rapid7', 'Tenable',
-    'Qualys', 'Darktrace', 'Vectra', 'Elastic', 'Google', 'AWS', 'Azure',
-  ];
+  const status = rag.getStatus();
+  if (status.indexLoaded === 0) {
+    console.log(chalk.yellow(
+      `  No embeddings loaded (entries: ${status.entries}, embeddings: ${status.embeddings}).\n` +
+      '  Run: npm run mitre:ingest\n',
+    ));
+    return;
+  }
 
-  let sessionVendor: string | null = null; // remembered across follow-up turns
-  let attempts = 0;                        // resets each time a new vendor is resolved
+  console.log(chalk.dim(
+    `  Local index ready: ${status.indexLoaded.toLocaleString()} entries\n`,
+  ));
 
   while (true) {
     const { input } = await inquirer.prompt([
@@ -462,147 +465,21 @@ async function mitreCoverageChat(): Promise<void> {
       break;
     }
 
-    // ── NLU: extract vendor from input ──────────────────────────────────────
-    const detectedVendor = extractVendor(raw, KNOWN_VENDORS);
-    let vendor: string;
+    console.log(chalk.dim('\n  Querying local MITRE ATT&CK index...\n'));
 
-    if (detectedVendor) {
-      vendor = detectedVendor;
-      sessionVendor = vendor;
-      attempts = 0;
-    } else if (sessionVendor) {
-      // Follow-up question — reuse last vendor
-      vendor = sessionVendor;
-    } else {
-      // Ambiguous — ask for clarification
-      console.log(
-        chalk.yellow('\n  Clarification needed: I could not identify a vendor in your query.\n') +
-        chalk.dim('  Please specify the vendor name, e.g. "Microsoft", "Palo Alto Networks".\n'),
-      );
-      continue;
-    }
-
-    // ── Loop control: enforce 3-attempt cap per vendor ───────────────────────
-    attempts++;
-    if (attempts > 3) {
-      console.log(
-        chalk.yellow('\n  Unable to find sufficient information after three attempts.\n') +
-        chalk.dim(`  Try a different query or type a new vendor name to start fresh.\n`),
-      );
-      attempts = 0;
-      sessionVendor = null;
-      continue;
-    }
-
-    console.log(
-      chalk.dim(`\n  Analysing ${chalk.bold(vendor)} — attempt ${attempts}/3 (max 3 ReAct iterations)...\n`),
-    );
-
-    // ── Run agent ────────────────────────────────────────────────────────────
-    let report: MitreCoverageReport;
     try {
-      report = await agent.analyseVendor(vendor);
+      const result = await rag.query(raw, 8);
+      console.log(result.formattedContext);
+      console.log();
+      console.log(chalk.dim(`  (${result.entries.length} result(s) from ${result.totalEntries} indexed entries)\n`));
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       console.log(chalk.red(`\n  Error: ${msg}\n`));
       console.log(chalk.dim('  Check that LM Studio is running and the model is loaded.\n'));
       continue;
     }
-
-    // ── Format & deliver response ────────────────────────────────────────────
-    if (report.insufficientInfo) {
-      if (attempts >= 3) {
-        console.log(chalk.yellow('\n  Unable to find sufficient information after three attempts.\n'));
-        attempts = 0;
-        sessionVendor = null;
-      } else {
-        console.log(
-          chalk.yellow(`\n  Attempt ${attempts}/3: Incomplete results for ${vendor}.\n`) +
-          chalk.dim(`  ${report.summary}\n`) +
-          chalk.dim('  Retrying with a more targeted query — or rephrase your question.\n'),
-        );
-      }
-      continue;
-    }
-
-    // Success — reset attempt counter for next query
-    attempts = 0;
-
-    // Header
-    console.log(chalk.cyan(`\n  ── ATT&CK Coverage: ${chalk.bold(vendor)} ──────────────────────────\n`));
-    console.log(`  Coverage score : ${chalk.bold(report.overallCoverageScore.toFixed(1))}/10`);
-    console.log(`  Techniques     : ${chalk.bold(report.ttpsAddressed.length)} addressed, ` +
-                `${chalk.bold(report.coverageGaps.length)} gaps\n`);
-
-    // Summary
-    if (report.summary) {
-      console.log(chalk.white(`  ${report.summary}\n`));
-    }
-
-    // TTP table
-    if (report.ttpsAddressed.length > 0) {
-      console.log(chalk.cyan('  Techniques addressed:\n'));
-      report.ttpsAddressed.forEach(t => {
-        const badge = {
-          full:    chalk.bgGreen.black(' FULL    '),
-          partial: chalk.bgYellow.black(' PARTIAL '),
-          none:    chalk.bgRed.white(' NONE    '),
-          unknown: chalk.bgGray.white(' UNKNOWN '),
-        }[t.coverageLevel] ?? chalk.dim(' UNKNOWN ');
-
-        console.log(`  ${badge}  ${chalk.bold(t.techniqueId.padEnd(12))} ${t.techniqueName}`);
-        if (t.products.length > 0) {
-          console.log(chalk.dim(`              Products: ${t.products.slice(0, 2).join(' · ')}`));
-        }
-      });
-      console.log();
-    }
-
-    // Gaps
-    if (report.coverageGaps.length > 0) {
-      console.log(chalk.cyan('  Coverage gaps:\n'));
-      report.coverageGaps.slice(0, 5).forEach(g =>
-        console.log(`  ${chalk.red('✗')} ${g}`),
-      );
-      if (report.coverageGaps.length > 5) {
-        console.log(chalk.dim(`  … and ${report.coverageGaps.length - 5} more (see full JSON report)`));
-      }
-      console.log();
-    }
-
-    // Auto-save report
-    const slug = vendor.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-    const outPath = path.join(REPORTS_DIR, `mitre-coverage-${slug}.json`);
-    fs.writeFileSync(outPath, JSON.stringify(report, null, 2), 'utf-8');
-    console.log(chalk.dim(`  Full report → ${outPath}\n`));
-    console.log(chalk.dim('  Ask a follow-up or enter a new vendor name.\n'));
+    console.log(chalk.dim('  Ask another ATT&CK question or type "exit".\n'));
   }
-}
-
-/**
- * Extract a vendor name from a free-text string.
- * Returns the first case-insensitive match against known vendors,
- * or null when nothing recognisable is found.
- */
-function extractVendor(input: string, knownVendors: string[]): string | null {
-  const lower = input.toLowerCase();
-  // Longest match first to prefer "Palo Alto Networks" over "Palo"
-  const sorted = [...knownVendors].sort((a, b) => b.length - a.length);
-  for (const v of sorted) {
-    if (lower.includes(v.toLowerCase())) return v;
-  }
-  // Fallback: capitalised word sequence not matching common query words
-  const queryWords = new Set([
-    'how', 'does', 'do', 'what', 'is', 'are', 'show', 'tell', 'me', 'about',
-    'the', 'a', 'an', 'and', 'or', 'of', 'in', 'on', 'at', 'to', 'for',
-    'attack', 'mitre', 'coverage', 'techniques', 'tactics', 'ttp', 'ttps',
-    'security', 'cyber', 'threat', 'defence', 'defense', 'against', 'with',
-  ]);
-  const capitalised = input.match(/\b[A-Z][a-zA-Z0-9]*(?:\s+[A-Z][a-zA-Z0-9]*)*\b/g) ?? [];
-  for (const candidate of capitalised) {
-    if (!queryWords.has(candidate.toLowerCase())) return candidate;
-  }
-  return null;
 }
 
 // ─── MITRE ATT&CK Commands ────────────────────────────────────────────────────
@@ -948,20 +825,20 @@ program
     }
   });
 
-// ─── MITRE Vendor Coverage Command ───────────────────────────────────────────
+// ─── MITRE Query Analysis Command ────────────────────────────────────────────
 
 program
-  .command('mitre:vendor')
-  .description('Analyse how a vendor addresses MITRE ATT&CK techniques (max 3 ReAct iterations)')
-  .requiredOption('-v, --vendor <name>', 'Vendor name to analyse, e.g. "Microsoft", "Palo Alto Networks"')
+  .command('mitre:analysis')
+  .description('Run deep MITRE ATT&CK analysis from a free-form query/topic')
+  .requiredOption('-q, --query <text>', 'Query or topic to analyze, e.g. "T1059 detections on Windows"')
   .option('-o, --output <path>', 'Save JSON report to file')
   .option('--verbose', 'Print each ReAct step in real time')
   .action(async (opts) => {
     await checkLmStudio();
 
-    const vendorName: string = opts.vendor;
-    console.log(chalk.cyan(`\n  MITRE ATT&CK Coverage Analysis — ${vendorName}\n`));
-    console.log(chalk.dim('  Max iterations : 3'));
+    const queryText: string = opts.query;
+    console.log(chalk.cyan(`\n  MITRE ATT&CK Analysis — ${queryText}\n`));
+    console.log(chalk.dim('  Max iterations : 6'));
     console.log(chalk.dim(`  Embedding model: ${process.env.EMBEDDING_MODEL ?? agentConfig.model}\n`));
 
     const agent = new MitreCoverageAgent(agentConfig);
@@ -969,7 +846,7 @@ program
 
     let report: MitreCoverageReport;
     try {
-      report = await agent.analyseVendor(vendorName, (type, content) => {
+      report = await agent.analyseCoverage(queryText, (type, content) => {
         if (!opts.verbose) return;
         const icons: Record<string, string> = {
           thought: '💭', action: '⚡', observation: '👁', answer: '✅',
@@ -1025,8 +902,8 @@ program
       console.log(chalk.green(`  JSON report saved → ${outPath}\n`));
     } else {
       // Always save to reports dir for traceability
-      const slug = vendorName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-      const outPath = path.join(REPORTS_DIR, `mitre-coverage-${slug}.json`);
+      const slug = queryText.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 64) || 'query';
+      const outPath = path.join(REPORTS_DIR, `mitre-analysis-${slug}.json`);
       fs.writeFileSync(outPath, jsonOutput, 'utf-8');
       console.log(chalk.dim(`  Report auto-saved → ${outPath}\n`));
     }

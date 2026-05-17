@@ -40,6 +40,68 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
 .mitre-input-bar input:focus { border-color:var(--accent); }
 .mitre-clarify { padding:10px 14px; background:rgba(227,179,65,.08); border:1px solid var(--warn); border-radius:var(--radius); color:var(--warn); font-size:13px; }
 .chat-log { display:flex; flex-direction:column; gap:16px; }
+.mitre-activity-dock {
+  position: fixed;
+  left: calc(var(--sidebar-w) + 18px);
+  right: 18px;
+  bottom: 12px;
+  z-index: 380;
+  background: rgba(15, 20, 34, .94);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(4px);
+}
+.mitre-activity-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+}
+.mitre-activity-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text2);
+  letter-spacing: .3px;
+  text-transform: uppercase;
+}
+.mitre-activity-body {
+  max-height: 132px;
+  overflow-y: auto;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-family: 'SF Mono', Consolas, 'Courier New', monospace;
+  font-size: 11px;
+}
+.mitre-activity-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 2px 0;
+}
+.mitre-activity-time { color: var(--text2); flex-shrink: 0; }
+.mitre-activity-msg { color: var(--text); line-height: 1.45; word-break: break-word; }
+.mitre-activity-row.info .mitre-activity-msg { color: var(--text2); }
+.mitre-activity-row.action .mitre-activity-msg { color: #79c0ff; }
+.mitre-activity-row.done .mitre-activity-msg { color: var(--success); }
+.mitre-activity-row.warn .mitre-activity-msg { color: var(--warn); }
+.mitre-activity-row.error .mitre-activity-msg { color: var(--danger); }
+.mitre-activity-row.hidden { display: none; }
+.mitre-filter-btn {
+  font-size: 10px; padding: 1px 7px; border-radius: 20px; border: 1px solid var(--border);
+  background: transparent; color: var(--text2); cursor: pointer; letter-spacing: .3px;
+  transition: background .15s, color .15s;
+}
+.mitre-filter-btn:hover { background: rgba(255,255,255,.07); }
+.mitre-filter-btn.active { background: rgba(255,255,255,.13); color: var(--text); border-color: rgba(255,255,255,.3); }
+.mitre-filter-btn.f-action.active { color: #79c0ff; border-color: #79c0ff44; }
+.mitre-filter-btn.f-done.active   { color: var(--success); border-color: #3fb95044; }
+.mitre-filter-btn.f-warn.active   { color: var(--warn); border-color: #e3b34144; }
+.mitre-filter-btn.f-error.active  { color: var(--danger); border-color: #f8514944; }
 .chat-bubble { padding:14px 18px; border-radius:var(--radius); font-size:13px; line-height:1.6; }
 .chat-bubble.user { background:rgba(0,212,170,.08); border:1px solid rgba(0,212,170,.2); align-self:flex-end; max-width:70%; color:var(--text); }
 .chat-bubble.agent { background:var(--bg3); border:1px solid var(--border); align-self:flex-start; width:100%; }
@@ -108,24 +170,6 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
 .cvgdb-selection-pill { font-size:11px; color:var(--text2); padding:3px 9px; border:1px solid var(--border); border-radius:999px; }
 .cvgdb-run-check { accent-color: var(--accent); margin-right: 2px; cursor: pointer; }
 
-/* ── Palo Alto RAG page ─────────────────────────────────────────────────── */
-.prag-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
-.prag-grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
-.prag-status-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; display:inline-block; margin-right:6px; }
-.prag-status-dot.ok { background:var(--success); box-shadow:0 0 6px var(--success); }
-.prag-status-dot.down { background:var(--danger); }
-.prag-status-dot.checking { background:var(--warn); animation:pulse 1s infinite; }
-.prag-kv { font-size:12px; color:var(--text2); display:flex; justify-content:space-between; margin-bottom:4px; }
-.prag-kv strong { color:var(--text); }
-.prag-bar-row { display:flex; align-items:center; gap:8px; font-size:12px; margin-bottom:6px; }
-.prag-bar { flex:1; height:6px; background:var(--bg3); border-radius:3px; overflow:hidden; }
-.prag-bar-fill { height:100%; background:var(--accent); border-radius:3px; transition:width .4s; }
-.prag-url-list { display:flex; flex-direction:column; gap:6px; margin:10px 0; }
-.prag-url-item { display:flex; align-items:center; gap:6px; background:var(--bg3); padding:5px 8px; border-radius:5px; font-size:12px; }
-.prag-url-item span { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--text2); }
-.prag-url-del { background:none; border:none; color:var(--text2); cursor:pointer; padding:1px 4px; font-size:12px; flex-shrink:0; }
-.prag-url-del:hover { color:var(--danger); }
-.prag-result { background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius); padding:14px 18px; font-size:13px; line-height:1.6; word-break:break-word; max-height:720px; overflow-y:auto; }
 .markdown-rendered h1 { font-size:18px; font-weight:700; margin:12px 0 8px; color:var(--text); }
 .markdown-rendered h2 { font-size:15px; font-weight:700; margin:10px 0 6px; color:var(--accent); border-bottom:2px solid rgba(0,212,170,.2); padding-bottom:4px; }
 .markdown-rendered h3 { font-size:14px; font-weight:600; margin:8px 0 4px; color:var(--accent2); }
@@ -144,12 +188,6 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
 .markdown-rendered table td { padding:6px 8px; border:1px solid var(--border); }
 .markdown-rendered table tr:hover { background:rgba(0,212,170,.05); }
 .markdown-rendered p { margin:6px 0; }
-.prag-confidence { display:inline-flex; align-items:center; gap:6px; font-size:12px; padding:3px 10px; border-radius:10px; border:1px solid; }
-.prag-confidence.high { color:var(--success); border-color:rgba(63,185,80,.3); }
-.prag-confidence.mid  { color:var(--warn);    border-color:rgba(210,153,34,.3); }
-.prag-confidence.low  { color:var(--danger);  border-color:rgba(248,81,73,.3); }
-.prag-source-badge { display:inline-flex; align-items:center; gap:3px; font-size:10px; padding:1px 7px; border-radius:8px; border:1px solid var(--border); color:var(--text2); margin:2px; }
-
 /* ── Scrollbars ─────────────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
@@ -1072,10 +1110,6 @@ td.name-cell small { display: block; font-weight: 400; color: var(--text2); font
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
         <span id="nav-mitre-coverage-db">MITRE Coverage DB</span>
       </div>
-      <div class="nav-item" data-view="rag-settings" onclick="navigate('rag-settings')">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h10"/><circle cx="18" cy="17" r="2"/></svg>
-        <span id="nav-rag-settings">RAG Settings</span>
-      </div>
       <div class="nav-item" data-view="manage" onclick="navigate('manage')">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
         <span id="nav-manage-data">Manage Data</span>
@@ -1142,6 +1176,7 @@ const state = {
   barChart: null,
   categoryCriteriaChart: null,
   mitreConversationId: null,   // active MITRE chat history session
+  mitreLocalResults: {},       // transient local RAG results pending optional save
 };
 
 const I18N = {
@@ -1297,11 +1332,11 @@ const I18N = {
     failedLoadVendors: 'No se pudieron cargar los vendors: {message}',
     infoOnly: 'solo informativo',
     finalScoreLabel: 'Score final',
-    mitreChatTitle: 'MITRE ATT&CK — Cobertura de vendor',
-    mitreChatSubtitle: 'Pregunta cómo un vendor cubre las técnicas ATT&CK. El agente consulta la base de conocimiento MITRE y fuentes oficiales del vendor.',
-    mitreChatPlaceholder: 'Ej: "¿Cómo cubre Microsoft T1566 Phishing?" o "Cobertura ATT&CK de CrowdStrike"',
-    mitreChatAsk: 'Analizar',
-    mitreChatThinking: 'El agente está analizando…',
+    mitreChatTitle: 'MITRE ATT&CK — Local RAG Chatbot',
+    mitreChatSubtitle: 'Haz preguntas sobre técnicas, tácticas, grupos y mitigaciones usando solo la base local MITRE ATT&CK.',
+    mitreChatPlaceholder: 'Ej: "Explica T1059 y mitigaciones comunes" o "Técnicas de credential access"',
+    mitreChatAsk: 'Consultar',
+    mitreChatThinking: 'Consultando el índice local MITRE…',
     mitreChatInsufficient: 'Información insuficiente tras 3 intentos.',
     mitreChatCoverage: 'Cobertura ATT&CK',
     mitreChatTechniques: 'técnicas cubiertas',
@@ -1309,15 +1344,15 @@ const I18N = {
     mitreChatScore: 'Score de cobertura',
     mitreChatSources: 'fuentes consultadas',
     mitreChatHowWorks: 'Cómo funciona',
-    mitreChatHowDesc: 'Este chatbot envuelve un agente ReAct especializado. Por cada consulta:',
-    mitreChatStep1: '1. Consulta la base de conocimiento MITRE ATT&CK local (RAG)',
-    mitreChatStep2: '2. Busca documentación oficial del vendor en la web',
-    mitreChatStep3: '3. Devuelve un informe estructurado con nivel de cobertura por técnica',
-    mitreChatLimit: 'Máximo 3 iteraciones por consulta. Si no hay suficiente información devuelve "Información insuficiente".',
-    mitreChatClarify: 'No detecté un vendor en tu pregunta. Especifica el nombre del vendor, p.ej. "Microsoft", "Palo Alto Networks".',
+    mitreChatHowDesc: 'Este chatbot consulta directamente el RAG local MITRE ATT&CK. Por cada consulta:',
+    mitreChatStep1: '1. Genera embedding de tu pregunta en LM Studio',
+    mitreChatStep2: '2. Recupera entradas MITRE más relevantes del índice local',
+    mitreChatStep3: '3. Devuelve contexto estructurado con IDs y referencias ATT&CK',
+    mitreChatLimit: 'No requiere vendor ni búsqueda web. Usa solo conocimiento MITRE local.',
+    mitreChatClarify: 'Introduce una consulta de MITRE ATT&CK para continuar.',
     mitreChatNoDb: 'La base de datos MITRE no está ingestada. Ejecuta: npm run mitre:ingest',
     mitreChatError: 'Error al analizar: {message}',
-    mitreChatEnterVendor: 'Introduce una consulta con el nombre del vendor',
+    mitreChatEnterVendor: 'Introduce una consulta sobre MITRE ATT&CK',
     mitreChatProducts: 'Productos',
     mitreChatFull: 'COMPLETA',
     mitreChatPartial: 'PARCIAL',
@@ -1329,29 +1364,25 @@ const I18N = {
     mitreChatDeleteConv: 'Eliminar',
     mitreChatLoadConv: 'Cargar conversación',
     mitreChatSaved: 'Guardado',
+    mitreChatSaveToDb: 'Guardar en MITRE Coverage DB',
+    mitreChatSaving: 'Guardando...',
+    mitreChatSavedToDb: 'Resultado guardado en MITRE Coverage DB',
+    mitreChatSaveError: 'No se pudo guardar: {message}',
     mitreCvgDbNav: 'MITRE Coverage DB',
-    ragSettingsNav: 'RAG Settings',
-    ragSettingsTitle: 'RAG Settings',
-    ragSettingsSubtitle: 'Gestion centralizada de conectores RAG por vendor. Palo Alto esta activo y puedes ampliar aqui nuevos RAGs de fabricantes.',
-    ragSettingsAvailable: 'Disponible',
-    ragSettingsPlanned: 'Planeado',
-    ragSettingsOpen: 'Abrir',
-    ragSettingsComingSoon: 'Proximamente',
-    ragSettingsIntro: 'RAGs por vendor',
     mitreCvgDbTitle: 'MITRE ATT&CK — Base de resultados',
-    mitreCvgDbSubtitle: 'Todos los análisis de cobertura guardados. Cada nuevo análisis del mismo vendor acumula resultados.',
-    mitreCvgDbVendors: 'Vendors analizados',
+    mitreCvgDbSubtitle: 'Todos los análisis MITRE guardados. Cada nueva ejecución del mismo tema acumula resultados.',
+    mitreCvgDbVendors: 'Temas analizados',
     mitreCvgDbRuns: 'análisis',
     mitreCvgDbLastRun: 'Último análisis',
     mitreCvgDbScore: 'Score',
     mitreCvgDbTtps: 'TTPs',
-    mitreCvgDbEmpty: 'No hay resultados guardados. Analiza un vendor desde el chatbot MITRE ATT&CK.',
+    mitreCvgDbEmpty: 'No hay resultados guardados. Ejecuta consultas desde el chatbot MITRE ATT&CK.',
     mitreCvgDbDetail: 'Detalle',
     mitreCvgDbMerged: 'Acumulado',
     mitreCvgDbRunHistory: 'Historial de ejecuciones',
-    mitreCvgDbDeleteVendor: '¿Eliminar todos los análisis de este vendor?',
-    mitreCvgDbReanalyze: 'Re-analizar',
-    mitreCvgDbSelectVendor: 'Selecciona un vendor para ver el detalle',
+    mitreCvgDbDeleteVendor: '¿Eliminar todos los análisis de este tema?',
+    mitreCvgDbReanalyze: 'Re-ejecutar consulta',
+    mitreCvgDbSelectVendor: 'Selecciona un tema para ver el detalle',
     mitreCvgDbRun: 'Ejecución',
     mitreCvgDbNoMerge: 'Se necesitan ≥2 análisis válidos para ver el informe acumulado.',
     mitreCvgDbPreviewMerge: 'Previsualizar unificación',
@@ -1362,31 +1393,8 @@ const I18N = {
     mitreCvgDbMergeSavedError: 'No se pudo guardar la unificación: {message}',
     mitreCvgDbSaveMergeConfirm: '¿Guardar esta unificación como un nuevo análisis acumulado?',
     mitreCvgDbExportAllMd: 'Exportar todos (Markdown)',
-    mitreCvgDbExportingAllMd: 'Generando markdown enriquecido de todos los vendors...',
-    mitreCvgDbExportedAllMd: 'Exportados {count} vendors a Markdown',
-    paRagNav: 'Palo Alto RAG',
-    paRagTitle: 'Palo Alto Networks — MITRE RAG',
-    paRagSubtitle: 'Base de conocimiento especializada: TechDocs · Unit 42 · Cortex XDR · MITRE Evaluations',
-    paRagServiceStatus: 'Estado del servicio',
-    paRagChunks: 'fragmentos indexados',
-    paRagIngestTitle: 'Ingestar documentos',
-    paRagIngestDefaults: 'Ingestar fuentes por defecto',
-    paRagIngestDefaultsHint: 'TechDocs + Unit 42 + Cortex XDR + MITRE Evaluations',
-    paRagAddUrl: 'Añadir URL',
-    paRagAddUrlPlaceholder: 'https://docs.paloaltonetworks.com/...',
-    paRagIngestBtn: 'Ingestar',
-    paRagIngestRunning: 'Ingestando…',
-    paRagResetBtn: 'Vaciar base de conocimiento',
-    paRagResetConfirm: '¿Eliminar todos los vectores? Esta acción no se puede deshacer.',
-    paRagQueryTitle: 'Consulta de prueba',
-    paRagQueryPlaceholder: 'Ej: Cortex XDR detección T1059, Prisma prevención movimiento lateral',
-    paRagQueryBtn: 'Consultar',
-    paRagStatsTitle: 'Estadísticas',
-    paRagByProduct: 'Por producto',
-    paRagByAction: 'Por tipo',
-    paRagBySource: 'Por fuente',
-    paRagServiceDown: 'Servicio no disponible. Inicia el servicio Python con: npm run paloalto:start',
-    paRagInstallHint: 'Instala dependencias Python con: npm run paloalto:install',
+    mitreCvgDbExportingAllMd: 'Generando markdown enriquecido de todos los temas...',
+    mitreCvgDbExportedAllMd: 'Exportados {count} temas a Markdown',
   },
   en: {
     language: 'Language',
@@ -1540,11 +1548,11 @@ const I18N = {
     failedLoadVendors: 'Failed to load vendors: {message}',
     infoOnly: 'info only',
     finalScoreLabel: 'Final Score',
-    mitreChatTitle: 'MITRE ATT&CK — Vendor Coverage',
-    mitreChatSubtitle: 'Ask how a vendor covers ATT&CK techniques. The agent queries the local MITRE knowledge base and official vendor sources.',
-    mitreChatPlaceholder: 'e.g. "How does Microsoft cover T1566 Phishing?" or "CrowdStrike ATT&CK coverage"',
-    mitreChatAsk: 'Analyze',
-    mitreChatThinking: 'Agent is analysing…',
+    mitreChatTitle: 'MITRE ATT&CK — Local RAG Chatbot',
+    mitreChatSubtitle: 'Ask about techniques, tactics, groups and mitigations using only the local MITRE ATT&CK knowledge base.',
+    mitreChatPlaceholder: 'e.g. "Explain T1059 and common mitigations" or "Credential access techniques"',
+    mitreChatAsk: 'Query',
+    mitreChatThinking: 'Querying local MITRE index…',
     mitreChatInsufficient: 'Unable to find sufficient information after three attempts.',
     mitreChatCoverage: 'ATT&CK Coverage',
     mitreChatTechniques: 'techniques covered',
@@ -1552,15 +1560,15 @@ const I18N = {
     mitreChatScore: 'Coverage Score',
     mitreChatSources: 'sources consulted',
     mitreChatHowWorks: 'How it works',
-    mitreChatHowDesc: 'This chatbot wraps a specialised ReAct agent. For each query it:',
-    mitreChatStep1: '1. Queries the local MITRE ATT&CK knowledge base (RAG)',
-    mitreChatStep2: '2. Searches for official vendor documentation on the web',
-    mitreChatStep3: '3. Returns a structured report with coverage level per technique',
-    mitreChatLimit: 'Maximum 3 iterations per query. If insufficient info is found it returns "Unable to find sufficient information".',
-    mitreChatClarify: 'I could not identify a vendor in your query. Please specify a vendor name, e.g. "Microsoft", "Palo Alto Networks".',
+    mitreChatHowDesc: 'This chatbot directly queries the local MITRE ATT&CK RAG. For each query it:',
+    mitreChatStep1: '1. Creates an embedding from your question in LM Studio',
+    mitreChatStep2: '2. Retrieves the most relevant MITRE entries from the local index',
+    mitreChatStep3: '3. Returns structured context with ATT&CK IDs and references',
+    mitreChatLimit: 'No vendor or web search is required. It uses local MITRE knowledge only.',
+    mitreChatClarify: 'Enter a MITRE ATT&CK query to continue.',
     mitreChatNoDb: 'MITRE knowledge base not ingested. Run: npm run mitre:ingest',
     mitreChatError: 'Analysis error: {message}',
-    mitreChatEnterVendor: 'Enter a query with a vendor name',
+    mitreChatEnterVendor: 'Enter a query about MITRE ATT&CK',
     mitreChatProducts: 'Products',
     mitreChatFull: 'FULL',
     mitreChatPartial: 'PARTIAL',
@@ -1572,29 +1580,25 @@ const I18N = {
     mitreChatDeleteConv: 'Delete',
     mitreChatLoadConv: 'Load conversation',
     mitreChatSaved: 'Saved',
+    mitreChatSaveToDb: 'Save to MITRE Coverage DB',
+    mitreChatSaving: 'Saving...',
+    mitreChatSavedToDb: 'Result saved to MITRE Coverage DB',
+    mitreChatSaveError: 'Unable to save result: {message}',
     mitreCvgDbNav: 'MITRE Coverage DB',
-    ragSettingsNav: 'RAG Settings',
-    ragSettingsTitle: 'RAG Settings',
-    ragSettingsSubtitle: 'Centralized management for vendor RAG connectors. Palo Alto is active and future vendor RAGs can be added here.',
-    ragSettingsAvailable: 'Available',
-    ragSettingsPlanned: 'Planned',
-    ragSettingsOpen: 'Open',
-    ragSettingsComingSoon: 'Coming soon',
-    ragSettingsIntro: 'Vendor RAGs',
     mitreCvgDbTitle: 'MITRE ATT&CK — Coverage Database',
-    mitreCvgDbSubtitle: 'All saved coverage analyses. Each new analysis of the same vendor accumulates results.',
-    mitreCvgDbVendors: 'Analyzed vendors',
+    mitreCvgDbSubtitle: 'All saved MITRE analyses. Each new run for the same topic accumulates results.',
+    mitreCvgDbVendors: 'Analyzed topics',
     mitreCvgDbRuns: 'analyses',
     mitreCvgDbLastRun: 'Last analysis',
     mitreCvgDbScore: 'Score',
     mitreCvgDbTtps: 'TTPs',
-    mitreCvgDbEmpty: 'No saved results yet. Analyse a vendor from the MITRE ATT&CK Chatbot.',
+    mitreCvgDbEmpty: 'No saved results yet. Run queries from the MITRE ATT&CK Chatbot.',
     mitreCvgDbDetail: 'Detail',
     mitreCvgDbMerged: 'Accumulated',
     mitreCvgDbRunHistory: 'Run history',
-    mitreCvgDbDeleteVendor: 'Delete all analyses for this vendor?',
-    mitreCvgDbReanalyze: 'Re-analyse',
-    mitreCvgDbSelectVendor: 'Select a vendor to view its detail',
+    mitreCvgDbDeleteVendor: 'Delete all analyses for this topic?',
+    mitreCvgDbReanalyze: 'Re-run query',
+    mitreCvgDbSelectVendor: 'Select a topic to view its detail',
     mitreCvgDbRun: 'Run',
     mitreCvgDbNoMerge: '≥2 valid analyses needed to view the accumulated report.',
     mitreCvgDbPreviewMerge: 'Preview merge',
@@ -1605,31 +1609,8 @@ const I18N = {
     mitreCvgDbMergeSavedError: 'Could not save merge: {message}',
     mitreCvgDbSaveMergeConfirm: 'Save this merge as a new accumulated analysis?',
     mitreCvgDbExportAllMd: 'Export all (Markdown)',
-    mitreCvgDbExportingAllMd: 'Generating rich markdown for all vendors...',
-    mitreCvgDbExportedAllMd: 'Exported {count} vendors to Markdown',
-    paRagNav: 'Palo Alto RAG',
-    paRagTitle: 'Palo Alto Networks — MITRE RAG',
-    paRagSubtitle: 'Specialised knowledge base: TechDocs · Unit 42 · Cortex XDR · MITRE Evaluations',
-    paRagServiceStatus: 'Service status',
-    paRagChunks: 'indexed chunks',
-    paRagIngestTitle: 'Ingest documents',
-    paRagIngestDefaults: 'Ingest default sources',
-    paRagIngestDefaultsHint: 'TechDocs + Unit 42 + Cortex XDR + MITRE Evaluations',
-    paRagAddUrl: 'Add URL',
-    paRagAddUrlPlaceholder: 'https://docs.paloaltonetworks.com/...',
-    paRagIngestBtn: 'Ingest',
-    paRagIngestRunning: 'Ingesting…',
-    paRagResetBtn: 'Clear knowledge base',
-    paRagResetConfirm: 'Delete all vectors? This cannot be undone.',
-    paRagQueryTitle: 'Test query',
-    paRagQueryPlaceholder: 'e.g. Cortex XDR T1059 detection, Prisma lateral movement prevention',
-    paRagQueryBtn: 'Query',
-    paRagStatsTitle: 'Statistics',
-    paRagByProduct: 'By product',
-    paRagByAction: 'By action type',
-    paRagBySource: 'By source',
-    paRagServiceDown: 'Service unavailable. Start the Python service with: npm run paloalto:start',
-    paRagInstallHint: 'Install Python dependencies with: npm run paloalto:install',
+    mitreCvgDbExportingAllMd: 'Generating rich markdown for all topics...',
+    mitreCvgDbExportedAllMd: 'Exported {count} topics to Markdown',
   },
 };
 
@@ -1664,8 +1645,6 @@ function applyStaticTranslations() {
   set('nav-analyze-vendor', t('analyzeVendor'));
   set('nav-mitre-chat', t('mitreChatNav'));
   set('nav-mitre-coverage-db', t('mitreCvgDbNav'));
-  set('nav-rag-settings', t('ragSettingsNav'));
-  set('nav-paloalto-rag', t('paRagNav'));
   set('nav-manage-data', t('manageData'));
 
   const selector = document.getElementById('lang-select');
@@ -1985,76 +1964,7 @@ async function render() {
   else if (state.view === 'analyze') renderAnalyze(main);
   else if (state.view === 'mitre-chat') renderMitreChat(main);
   else if (state.view === 'mitre-coverage-db') await renderMitreCoverageDb(main);
-  else if (state.view === 'rag-settings') renderRagSettings(main);
-  else if (state.view === 'paloalto-rag') await renderPaloAltoRag(main);
   else if (state.view === 'manage') await renderManage(main);
-}
-
-// ══════════════════════════════════════════════════════════════════════════
-//  RAG Settings page
-// ══════════════════════════════════════════════════════════════════════════
-function renderRagSettings(el) {
-  const ragDefs = [
-    {
-      key: 'paloalto',
-      name: 'Palo Alto RAG',
-      descEs: 'RAG especializado en TechDocs, Unit 42, Cortex XDR y MITRE Evaluations.',
-      descEn: 'Specialized RAG over TechDocs, Unit 42, Cortex XDR and MITRE Evaluations.',
-      status: 'available',
-      action: () => navigate('paloalto-rag'),
-    },
-    {
-      key: 'microsoft',
-      name: 'Microsoft RAG',
-      descEs: 'Conector previsto para documentos de Microsoft Security y Defender.',
-      descEn: 'Planned connector for Microsoft Security and Defender documentation.',
-      status: 'planned',
-    },
-    {
-      key: 'crowdstrike',
-      name: 'CrowdStrike RAG',
-      descEs: 'Conector previsto para base de conocimiento Falcon y reportes de amenaza.',
-      descEn: 'Planned connector for Falcon knowledge base and threat reports.',
-      status: 'planned',
-    },
-    {
-      key: 'fortinet',
-      name: 'Fortinet RAG',
-      descEs: 'Conector previsto para FortiDocs y contenido tecnico de FortiAI.',
-      descEn: 'Planned connector for FortiDocs and FortiAI technical content.',
-      status: 'planned',
-    },
-  ];
-
-  const cards = ragDefs.map(def => {
-    const isAvailable = def.status === 'available';
-    const badgeText = isAvailable ? t('ragSettingsAvailable') : t('ragSettingsPlanned');
-    const badgeColor = isAvailable ? 'var(--success)' : 'var(--warn)';
-    const desc = state.language === 'en' ? def.descEn : def.descEs;
-
-    return `<div class="section" style="margin-bottom:14px">
-      <div class="section-body" style="padding:16px 18px">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:8px">
-          <div style="font-size:16px;font-weight:600;color:var(--text)">${esc(def.name)}</div>
-          <span style="font-size:11px;padding:3px 8px;border:1px solid ${badgeColor};color:${badgeColor};border-radius:999px">${badgeText}</span>
-        </div>
-        <div style="font-size:13px;color:var(--text2);margin-bottom:12px">${esc(desc)}</div>
-        <button class="btn btn-sm" style="font-size:12px;padding:5px 10px" ${isAvailable ? `onclick="navigate('paloalto-rag')"` : 'disabled'}>
-          ${isAvailable ? t('ragSettingsOpen') : t('ragSettingsComingSoon')}
-        </button>
-      </div>
-    </div>`;
-  }).join('');
-
-  el.innerHTML = `
-    <div class="page-header">
-      <h1>${t('ragSettingsTitle')}</h1>
-      <p>${t('ragSettingsSubtitle')}</p>
-    </div>
-    <div class="section">
-      <div class="section-header"><span class="section-title">${t('ragSettingsIntro')}</span></div>
-      <div class="section-body" style="padding:14px">${cards}</div>
-    </div>`;
 }
 
 // ══════════════════════════════════════════════════════════════════════════
@@ -2681,8 +2591,8 @@ function renderAnalyze(el) {
 
 // State for the coverage DB page
 const cvgDb = {
-  vendors: [],
-  selectedVendor: null,
+  topics: [],
+  selectedTopic: null,
   tab: 'merged',
   selectedRunId: null,
   currentReports: [],
@@ -2719,23 +2629,23 @@ async function renderMitreCoverageDb(el) {
         </div>
       </div>
     </div>`;
-  await cvgDbLoadVendors();
+  await cvgDbLoadTopics();
 }
 
-async function cvgDbLoadVendors() {
+async function cvgDbLoadTopics() {
   const list = document.getElementById('cvgdb-vendor-list');
   const countEl = document.getElementById('cvgdb-count');
   if (!list) return;
   try {
-    cvgDb.vendors = await api('/api/mitre/vendor-stats');
-    if (countEl) countEl.textContent = cvgDb.vendors.length + ' vendor' + (cvgDb.vendors.length !== 1 ? 's' : '');
-    if (!cvgDb.vendors.length) {
+    cvgDb.topics = await api('/api/mitre/topic-stats');
+    if (countEl) countEl.textContent = cvgDb.topics.length + ' topic' + (cvgDb.topics.length !== 1 ? 's' : '');
+    if (!cvgDb.topics.length) {
       list.innerHTML = `<div class="cvgdb-empty">${t('mitreCvgDbEmpty')}</div>`;
       return;
     }
     list.innerHTML = `<table class="cvgdb-table">
       <thead><tr>
-        <th>Vendor</th>
+        <th>Topic</th>
         <th style="width:60px;text-align:center">${t('mitreCvgDbScore')}</th>
         <th style="width:42px;text-align:center">${t('mitreCvgDbTtps')}</th>
         <th style="width:70px;text-align:center">${t('mitreCvgDbRuns')}</th>
@@ -2750,16 +2660,17 @@ async function cvgDbLoadVendors() {
 function cvgDbRenderRows() {
   const tbody = document.getElementById('cvgdb-tbody');
   if (!tbody) return;
-  tbody.innerHTML = cvgDb.vendors.map((v, idx) => {
-    const isActive = cvgDb.selectedVendor === v.vendor;
+  tbody.innerHTML = cvgDb.topics.map((v, idx) => {
+    const topicName = v.topic || v.vendor;
+    const isActive = cvgDb.selectedTopic === topicName;
     const score = (v.latestScore || 0).toFixed(1);
     const scoreColor = score >= 7 ? 'var(--success)' : score >= 4 ? 'var(--warn)' : 'var(--danger)';
     const sparkHtml = cvgDbSparkline(v.scoreHistory || []);
     // Use numeric index in onclick — vendor names may contain quotes/apostrophes
     // which break HTML attribute parsing when passed through JSON.stringify.
-    return `<tr class="${isActive ? 'active' : ''}" onclick="cvgDbSelectVendorByIdx(${idx})">
+    return `<tr class="${isActive ? 'active' : ''}" onclick="cvgDbSelectTopicByIdx(${idx})">
       <td>
-        <div style="font-weight:500;font-size:13px">${esc(v.vendor)}</div>
+        <div style="font-weight:500;font-size:13px">${esc(topicName)}</div>
         <div style="font-size:10px;color:var(--text2)">${new Date(v.lastAnalyzed).toLocaleDateString()}</div>
       </td>
       <td style="text-align:center">
@@ -2773,7 +2684,7 @@ function cvgDbRenderRows() {
         </div>
       </td>
       <td style="text-align:right">
-        <button onclick="event.stopPropagation();cvgDbDeleteVendorByIdx(${idx})"
+        <button onclick="event.stopPropagation();cvgDbDeleteTopicByIdx(${idx})"
           style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:12px;padding:3px 6px;border-radius:3px"
           title="${t('mitreCvgDbDeleteVendor')}">✕</button>
       </td>
@@ -2781,14 +2692,14 @@ function cvgDbRenderRows() {
   }).join('');
 }
 
-function cvgDbSelectVendorByIdx(idx) {
-  const v = cvgDb.vendors[idx];
-  if (v) cvgDbSelectVendor(v.vendor);
+function cvgDbSelectTopicByIdx(idx) {
+  const v = cvgDb.topics[idx];
+  if (v) cvgDbSelectTopic(v.topic || v.vendor);
 }
 
-async function cvgDbDeleteVendorByIdx(idx) {
-  const v = cvgDb.vendors[idx];
-  if (v) cvgDbDeleteVendor(v.vendor);
+async function cvgDbDeleteTopicByIdx(idx) {
+  const v = cvgDb.topics[idx];
+  if (v) cvgDbDeleteTopic(v.topic || v.vendor);
 }
 
 function cvgDbSparkline(history) {
@@ -2800,8 +2711,8 @@ function cvgDbSparkline(history) {
   }).join('')}</div>`;
 }
 
-async function cvgDbSelectVendor(vendor) {
-  cvgDb.selectedVendor = vendor;
+async function cvgDbSelectTopic(topic) {
+  cvgDb.selectedTopic = topic;
   cvgDb.selectedRunId = null;
   cvgDb.selectedRunIds = [];
   cvgDb.previewMerged = null;
@@ -2809,26 +2720,26 @@ async function cvgDbSelectVendor(vendor) {
   const titleEl = document.getElementById('cvgdb-detail-title');
   const bodyEl  = document.getElementById('cvgdb-detail-body');
   if (!bodyEl) return;
-  if (titleEl) titleEl.textContent = vendor;
+  if (titleEl) titleEl.textContent = topic;
   bodyEl.innerHTML = `<div style="color:var(--text2);font-size:13px;padding:8px">Cargando…</div>`;
 
   try {
     const [reports, merged] = await Promise.all([
-      api(`/api/mitre/vendor-stats/${encodeURIComponent(vendor)}/reports`),
-      api(`/api/mitre/vendor-stats/${encodeURIComponent(vendor)}/merged`).catch(() => null),
+      api(`/api/mitre/topic-stats/${encodeURIComponent(topic)}/reports`),
+      api(`/api/mitre/topic-stats/${encodeURIComponent(topic)}/merged`).catch(() => null),
     ]);
     cvgDb.currentReports = reports;
     cvgDb.currentMerged  = merged;
     cvgDb.tab = reports.length >= 2 && merged ? 'merged' : 'history';
     cvgDb.selectedRunIds = [];
     cvgDb.previewMerged = null;
-    cvgDbRenderDetail(vendor);
+    cvgDbRenderDetail(topic);
   } catch (e) {
     bodyEl.innerHTML = `<div style="color:var(--danger)">${esc(e.message)}</div>`;
   }
 }
 
-function cvgDbRenderDetail(vendor) {
+function cvgDbRenderDetail(topic) {
   const bodyEl  = document.getElementById('cvgdb-detail-body');
   if (!bodyEl) return;
   const reports = cvgDb.currentReports;
@@ -2840,7 +2751,7 @@ function cvgDbRenderDetail(vendor) {
       ${hasMerged ? `<button class="cvgdb-tab${cvgDb.tab==='merged'?' active':''}" onclick="cvgDbSetTab('merged')">${t('mitreCvgDbMerged')}</button>` : ''}
       <button class="cvgdb-tab${cvgDb.tab==='history'?' active':''}" onclick="cvgDbSetTab('history')">${t('mitreCvgDbRunHistory')}</button>
       <div style="flex:1"></div>
-      <button class="btn btn-sm" onclick="cvgDbReanalyze()" style="font-size:11px;padding:3px 10px">
+      <button class="btn btn-sm" onclick="cvgDbReanalyzeTopic()" style="font-size:11px;padding:3px 10px">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:middle;margin-right:3px"><polygon points="5 3 19 12 5 21 5 3"/></svg>
         ${t('mitreCvgDbReanalyze')}
       </button>
@@ -2858,7 +2769,7 @@ function cvgDbRenderDetail(vendor) {
 
 function cvgDbSetTab(tab) {
   cvgDb.tab = tab;
-  cvgDbRenderDetail(cvgDb.selectedVendor);
+  cvgDbRenderDetail(cvgDb.selectedTopic);
 }
 
 function cvgDbRenderReport(report, runCount) {
@@ -2967,7 +2878,7 @@ function cvgDbToggleRunSelection(runId) {
     ? cvgDb.selectedRunIds.filter(id => id !== runId)
     : [...cvgDb.selectedRunIds, runId];
   if (cvgDb.selectedRunIds.length < 2) cvgDb.previewMerged = null;
-  cvgDbRenderDetail(cvgDb.selectedVendor);
+  cvgDbRenderDetail(cvgDb.selectedTopic);
 }
 
 function cvgDbBuildMergedFromSelection() {
@@ -3011,7 +2922,7 @@ function cvgDbBuildMergedFromSelection() {
   const sources = [...new Set(ordered.flatMap(row => row.report.sourcesConsulted || []))];
 
   return {
-    vendor: cvgDb.selectedVendor,
+    vendor: cvgDb.selectedTopic,
     analysisDate: new Date().toISOString(),
     ttpsAddressed: [...ttpMap.values()],
     coverageGaps: filteredGaps,
@@ -3029,12 +2940,12 @@ function cvgDbPreviewMergeSelection() {
     return;
   }
   cvgDb.previewMerged = merged;
-  cvgDbRenderDetail(cvgDb.selectedVendor);
+  cvgDbRenderDetail(cvgDb.selectedTopic);
 }
 
 async function cvgDbSaveMergeSelection() {
-  const vendor = cvgDb.selectedVendor;
-  if (!vendor) return;
+  const topic = cvgDb.selectedTopic;
+  if (!topic) return;
   if (cvgDb.selectedRunIds.length < 2) {
     toast(t('mitreCvgDbSelectTwoRuns'), 'warning');
     return;
@@ -3042,14 +2953,14 @@ async function cvgDbSaveMergeSelection() {
   if (!confirm(t('mitreCvgDbSaveMergeConfirm'))) return;
 
   try {
-    await api(`/api/mitre/vendor-stats/${encodeURIComponent(vendor)}/merge-selection`, {
+    await api(`/api/mitre/topic-stats/${encodeURIComponent(topic)}/merge-selection`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ reportIds: cvgDb.selectedRunIds }),
     });
-    toast(tr('mitreCvgDbMergeSaved', { vendor }), 'success');
-    await cvgDbSelectVendor(vendor);
-    await cvgDbLoadVendors();
+    toast(tr('mitreCvgDbMergeSaved', { vendor: topic }), 'success');
+    await cvgDbSelectTopic(topic);
+    await cvgDbLoadTopics();
   } catch (e) {
     toast(tr('mitreCvgDbMergeSavedError', { message: e.message }), 'error');
   }
@@ -3057,32 +2968,32 @@ async function cvgDbSaveMergeSelection() {
 
 function cvgDbSelectRun(runId) {
   cvgDb.selectedRunId = runId;
-  cvgDbRenderDetail(cvgDb.selectedVendor);
+  cvgDbRenderDetail(cvgDb.selectedTopic);
 }
 
-function cvgDbReanalyze() {
-  const vendor = cvgDb.selectedVendor;
+function cvgDbReanalyzeTopic() {
+  const topic = cvgDb.selectedTopic;
   state.mitreConversationId = null;
   navigate('mitre-chat');
   // Pre-fill query after render
   setTimeout(() => {
     const input = document.getElementById('mitre-query-input');
-    if (input && vendor) { input.value = `${vendor} ATT&CK coverage`; input.focus(); }
+    if (input && topic) { input.value = topic; input.focus(); }
   }, 100);
 }
 
-async function cvgDbDeleteVendor(vendor) {
-  if (!confirm(`${t('mitreCvgDbDeleteVendor')}\n\n"${vendor}"`)) return;
+async function cvgDbDeleteTopic(topic) {
+  if (!confirm(`${t('mitreCvgDbDeleteVendor')}\n\n"${topic}"`)) return;
   try {
-    await api(`/api/mitre/vendor-stats/${encodeURIComponent(vendor)}`, { method: 'DELETE' });
-    if (cvgDb.selectedVendor === vendor) {
-      cvgDb.selectedVendor = null;
+    await api(`/api/mitre/topic-stats/${encodeURIComponent(topic)}`, { method: 'DELETE' });
+    if (cvgDb.selectedTopic === topic) {
+      cvgDb.selectedTopic = null;
       const bodyEl = document.getElementById('cvgdb-detail-body');
       if (bodyEl) bodyEl.innerHTML = `<div class="cvgdb-empty">${t('mitreCvgDbSelectVendor')}</div>`;
       const titleEl = document.getElementById('cvgdb-detail-title');
       if (titleEl) titleEl.textContent = t('mitreCvgDbDetail');
     }
-    await cvgDbLoadVendors();
+    await cvgDbLoadTopics();
   } catch (e) { toast('Error: ' + e.message, 'error'); }
 }
 
@@ -3090,23 +3001,23 @@ async function cvgDbExportAllMarkdown() {
   toast(t('mitreCvgDbExportingAllMd'), 'info');
 
   try {
-    const vendors = await api('/api/mitre/vendor-stats');
-    if (!Array.isArray(vendors) || vendors.length === 0) {
+    const topics = await api('/api/mitre/topic-stats');
+    if (!Array.isArray(topics) || topics.length === 0) {
       toast(t('mitreCvgDbEmpty'), 'error');
       return;
     }
 
     const date = new Date().toISOString().slice(0, 10);
-    const sections = await Promise.all(vendors.map(async (v) => {
-      const vendorName = String(v.vendor || '').trim();
-      if (!vendorName) return '';
+    const sections = await Promise.all(topics.map(async (v) => {
+      const topicName = String(v.topic || v.vendor || '').trim();
+      if (!topicName) return '';
 
       const [reports, merged] = await Promise.all([
-        api(`/api/mitre/vendor-stats/${encodeURIComponent(vendorName)}/reports`).catch(() => []),
-        api(`/api/mitre/vendor-stats/${encodeURIComponent(vendorName)}/merged`).catch(() => null),
+        api(`/api/mitre/topic-stats/${encodeURIComponent(topicName)}/reports`).catch(() => []),
+        api(`/api/mitre/topic-stats/${encodeURIComponent(topicName)}/merged`).catch(() => null),
       ]);
 
-      return buildMitreVendorMarkdownSection(vendorName, reports, merged);
+      return buildMitreTopicMarkdownSection(topicName, reports, merged);
     }));
 
     const nonEmpty = sections.filter(Boolean);
@@ -3133,16 +3044,16 @@ async function cvgDbExportAllMarkdown() {
   }
 }
 
-function buildMitreVendorMarkdownSection(vendorName, reports, merged) {
+function buildMitreTopicMarkdownSection(topicName, reports, merged) {
   const isEn = state.language === 'en';
-  const safeVendor = String(vendorName || '').trim();
-  if (!safeVendor) return '';
+  const safeTopic = String(topicName || '').trim();
+  if (!safeTopic) return '';
 
   const validReports = Array.isArray(reports)
     ? reports.filter(r => !r.insufficient && r.report)
     : [];
   const ref = merged && !merged.insufficientInfo ? merged : (validReports[0]?.report || null);
-  if (!ref) return `## ${safeVendor}\n\n${isEn ? 'No valid analyses available.' : 'No hay analisis validos disponibles.'}`;
+  if (!ref) return `## ${safeTopic}\n\n${isEn ? 'No valid analyses available.' : 'No hay analisis validos disponibles.'}`;
 
   const score = Number(ref.overallCoverageScore || 0).toFixed(1);
   const techniques = Array.isArray(ref.ttpsAddressed) ? ref.ttpsAddressed : [];
@@ -3170,7 +3081,7 @@ function buildMitreVendorMarkdownSection(vendorName, reports, merged) {
   const sourcesLabel = isEn ? 'Evidence sources' : 'Fuentes de evidencia';
   const tableTitle = isEn ? 'Technique matrix (top 20)' : 'Matriz de tecnicas (top 20)';
 
-  return `## ${mdEsc(safeVendor)}\n\n| ${isEn ? 'Metric' : 'Metrica'} | ${isEn ? 'Value' : 'Valor'} |\n|---|---|\n| ${scoreLabel} | **${score}/10** |\n| ${runsLabel} | ${validReports.length} |\n| ${dateLabel} | ${new Date(latestDate).toLocaleString()} |\n| ${techniquesLabel} | ${techniques.length} |\n| ${gapsLabel} | ${gaps.length} |\n\n### ${summaryLabel}\n\n${mdEsc(ref.summary || (isEn ? 'No summary available.' : 'Sin resumen disponible.'))}\n\n### ${tableTitle}\n\n| ID | ${isEn ? 'Technique' : 'Tecnica'} | ${isEn ? 'Coverage' : 'Cobertura'} | ${isEn ? 'Products' : 'Productos'} |\n|---|---|---|---|\n${topTechniques}\n\n### ${gapsLabel}\n\n${gapsList}\n\n### ${sourcesLabel}\n\n${sourceList}`;
+  return `## ${mdEsc(safeTopic)}\n\n| ${isEn ? 'Metric' : 'Metrica'} | ${isEn ? 'Value' : 'Valor'} |\n|---|---|\n| ${scoreLabel} | **${score}/10** |\n| ${runsLabel} | ${validReports.length} |\n| ${dateLabel} | ${new Date(latestDate).toLocaleString()} |\n| ${techniquesLabel} | ${techniques.length} |\n| ${gapsLabel} | ${gaps.length} |\n\n### ${summaryLabel}\n\n${mdEsc(ref.summary || (isEn ? 'No summary available.' : 'Sin resumen disponible.'))}\n\n### ${tableTitle}\n\n| ID | ${isEn ? 'Technique' : 'Tecnica'} | ${isEn ? 'Coverage' : 'Cobertura'} | ${isEn ? 'Products' : 'Productos'} |\n|---|---|---|---|\n${topTechniques}\n\n### ${gapsLabel}\n\n${gapsList}\n\n### ${sourcesLabel}\n\n${sourceList}`;
 }
 
 function mdEsc(value) {
@@ -3180,317 +3091,10 @@ function mdEsc(value) {
     .trim();
 }
 
-// ══════════════════════════════════════════════════════════════════════════
-//  Palo Alto Networks MITRE RAG management page
-// ══════════════════════════════════════════════════════════════════════════
-
-// Page state
-const paRag = {
-  status:   null,   // health response or null
-  stats:    null,   // stats response or null
-  extraUrls: [],    // user-added URLs (beyond defaults)
-  querying: false,
-  ingesting: false,
-};
-
-async function renderPaloAltoRag(el) {
-  el.innerHTML = `
-    <div class="page-header">
-      <h1>${t('paRagTitle')}</h1>
-      <p>${t('paRagSubtitle')}</p>
-    </div>
-    <div id="prag-root">
-      <div style="color:var(--text2);font-size:13px;padding:12px">Conectando con el servicio…</div>
-    </div>`;
-  await pragRefresh();
-}
-
-async function pragRefresh() {
-  const root = document.getElementById('prag-root');
-  if (!root) return;
-
-  // Parallel: health + stats
-  let status = null, stats = null, serviceDown = false;
-  try {
-    [status, stats] = await Promise.all([
-      api('/api/paloalto-rag/health').catch(e => ({ error: e.message })),
-      api('/api/paloalto-rag/stats').catch(() => null),
-    ]);
-    serviceDown = !!(status?.error || status?.status === 'degraded');
-  } catch {
-    serviceDown = true;
-  }
-  paRag.status = status;
-  paRag.stats  = stats;
-
-  const chunks     = stats?.total_chunks ?? 0;
-  const statusDot  = serviceDown ? 'down' : 'ok';
-  const statusText = serviceDown
-    ? t('paRagServiceDown')
-    : `${chunks} ${t('paRagChunks')}`;
-
-  root.innerHTML = `
-    <!-- Status banner -->
-    <div class="section" style="margin-bottom:16px">
-      <div class="section-header">
-        <span class="section-title">${t('paRagServiceStatus')}</span>
-      </div>
-      <div class="section-body" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-        <span class="prag-status-dot ${statusDot}"></span>
-        <span style="font-size:13px">${esc(statusText)}</span>
-        ${serviceDown ? `<span style="font-size:12px;color:var(--text2)">${t('paRagInstallHint')}</span>` : ''}
-        <button class="btn btn-sm" onclick="pragRefresh()" style="margin-left:auto">↻ Refresh</button>
-      </div>
-    </div>
-
-    <div class="prag-grid">
-      <!-- Left column: ingest + query -->
-      <div style="display:flex;flex-direction:column;gap:16px">
-
-        <!-- Ingest panel -->
-        <div class="section">
-          <div class="section-header"><span class="section-title">${t('paRagIngestTitle')}</span></div>
-          <div class="section-body">
-            <!-- Default sources toggle -->
-            <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;margin-bottom:10px">
-              <input type="checkbox" id="prag-use-defaults" checked style="accent-color:var(--accent)">
-              <span>${t('paRagIngestDefaults')}</span>
-            </label>
-            <p style="font-size:11px;color:var(--text2);margin:-4px 0 12px 24px">${t('paRagIngestDefaultsHint')}</p>
-
-            <!-- Custom URL list -->
-            <div style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">${t('paRagAddUrl')}</div>
-            <div class="prag-url-list" id="prag-url-list">${pragUrlListHtml()}</div>
-            <div style="display:flex;gap:6px;margin-bottom:14px">
-              <input id="prag-url-input" type="text" placeholder="${t('paRagAddUrlPlaceholder')}"
-                style="flex:1;padding:6px 10px;border-radius:5px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:12px"
-                onkeydown="if(event.key==='Enter')pragAddUrl()">
-              <button class="btn btn-sm" onclick="pragAddUrl()">+</button>
-            </div>
-
-            <!-- Ingest + Reset buttons -->
-            <div style="display:flex;gap:8px">
-              <button class="btn" id="prag-ingest-btn" onclick="pragIngest()" ${serviceDown?'disabled':''}>
-                ${t('paRagIngestBtn')}
-              </button>
-              <button class="btn" id="prag-reset-btn" onclick="pragReset()"
-                style="background:none;border:1px solid var(--danger);color:var(--danger)" ${serviceDown?'disabled':''}>
-                ${t('paRagResetBtn')}
-              </button>
-            </div>
-            <div id="prag-ingest-result" style="margin-top:10px;font-size:12px;color:var(--text2)"></div>
-          </div>
-        </div>
-
-        <!-- Query test panel -->
-        <div class="section">
-          <div class="section-header"><span class="section-title">${t('paRagQueryTitle')}</span></div>
-          <div class="section-body">
-            <textarea id="prag-query-input" rows="2"
-              placeholder="${t('paRagQueryPlaceholder')}"
-              style="width:100%;box-sizing:border-box;padding:8px 10px;border-radius:5px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:13px;resize:vertical;margin-bottom:8px"></textarea>
-            <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px">
-              <button class="btn" id="prag-query-btn" onclick="pragQuery()" ${serviceDown?'disabled':''}>
-                ${t('paRagQueryBtn')}
-              </button>
-              <div style="display:flex;gap:6px;align-items:center">
-                <select id="prag-filter-product" style="padding:4px 8px;border-radius:4px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:12px">
-                  <option value="">Product: All</option>
-                  <option>Cortex</option><option>Prisma</option>
-                  <option>Strata</option><option>Unit42</option>
-                </select>
-                <select id="prag-filter-action" style="padding:4px 8px;border-radius:4px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:12px">
-                  <option value="">Action: All</option>
-                  <option>Detection</option><option>Prevention</option>
-                  <option>Investigation</option><option>Intelligence</option>
-                </select>
-              </div>
-            </div>
-            <div id="prag-query-result"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Right column: stats -->
-      <div class="section">
-        <div class="section-header"><span class="section-title">${t('paRagStatsTitle')}</span></div>
-        <div class="section-body" id="prag-stats-body">
-          ${stats ? pragStatsHtml(stats) : `<div style="color:var(--text2);font-size:13px">${serviceDown ? '—' : 'Loading…'}</div>`}
-        </div>
-      </div>
-    </div>`;
-}
-
-function pragUrlListHtml() {
-  if (!paRag.extraUrls.length) return '';
-  return paRag.extraUrls.map((u, i) => `
-    <div class="prag-url-item">
-      <span title="${esc(u)}">${esc(u)}</span>
-      <button class="prag-url-del" onclick="pragRemoveUrl(${i})">✕</button>
-    </div>`).join('');
-}
-
-function pragAddUrl() {
-  const input = document.getElementById('prag-url-input');
-  const url = (input?.value ?? '').trim();
-  if (!url || !url.startsWith('http')) return;
-  if (!paRag.extraUrls.includes(url)) paRag.extraUrls.push(url);
-  if (input) input.value = '';
-  const list = document.getElementById('prag-url-list');
-  if (list) list.innerHTML = pragUrlListHtml();
-}
-
-function pragRemoveUrl(index) {
-  paRag.extraUrls.splice(index, 1);
-  const list = document.getElementById('prag-url-list');
-  if (list) list.innerHTML = pragUrlListHtml();
-}
-
-async function pragIngest() {
-  const btn    = document.getElementById('prag-ingest-btn');
-  const result = document.getElementById('prag-ingest-result');
-  const useDefaults = document.getElementById('prag-use-defaults')?.checked ?? true;
-
-  if (btn) { btn.disabled = true; btn.textContent = t('paRagIngestRunning'); }
-  if (result) result.textContent = '';
-  try {
-    const data = await api('/api/paloalto-rag/ingest', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        urls:         paRag.extraUrls.length ? [...paRag.extraUrls] : undefined,
-        use_defaults: useDefaults,
-      }),
-    });
-    const msg = `✓ ${data.ingested} fragmentos añadidos, ${data.skipped} omitidos.`;
-    if (result) result.textContent = msg + (data.errors?.length ? `  ${data.errors.length} errores.` : '');
-    toast(msg, 'success');
-    await pragRefresh();
-  } catch (e) {
-    if (result) result.textContent = 'Error: ' + e.message;
-    toast('Error: ' + e.message, 'error');
-    if (btn) { btn.disabled = false; btn.textContent = t('paRagIngestBtn'); }
-  }
-}
-
-async function pragReset() {
-  if (!confirm(t('paRagResetConfirm'))) return;
-  try {
-    const data = await api('/api/paloalto-rag/reset', { method: 'DELETE' });
-    toast(`${data.deleted} fragmentos eliminados`, 'success');
-    await pragRefresh();
-  } catch (e) { toast('Error: ' + e.message, 'error'); }
-}
-
-async function pragQuery() {
-  const input   = document.getElementById('prag-query-input');
-  const btn     = document.getElementById('prag-query-btn');
-  const resEl   = document.getElementById('prag-query-result');
-  const product = document.getElementById('prag-filter-product')?.value || undefined;
-  const action  = document.getElementById('prag-filter-action')?.value  || undefined;
-  const query   = (input?.value ?? '').trim();
-  if (!query) return;
-
-  if (btn) { btn.disabled = true; btn.textContent = '…'; }
-  if (resEl) resEl.innerHTML = '<div style="color:var(--text2);font-size:13px">Consultando…</div>';
-
-  try {
-    const filters = {};
-    if (product) filters.product_line = product;
-    if (action)  filters.action_type  = action;
-
-    const data = await api('/api/paloalto-rag/query', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        query,
-        top_k:          5,
-        filters:        Object.keys(filters).length ? filters : undefined,
-        use_self_query: true,
-      }),
-    });
-
-    const pct  = ((data.confidence_score ?? 0) * 100).toFixed(1);
-    const tier = pct >= 60 ? 'high' : pct >= 35 ? 'mid' : 'low';
-    const filterBadge = data.applied_filter
-      ? Object.entries(data.applied_filter).map(([k,v])=>`<span class="prag-source-badge">${esc(k)}=${esc(v)}</span>`).join('')
-      : '';
-
-    const sources = (data.sources ?? []).map(s =>
-      `<span class="prag-source-badge" title="${esc(s.url)}">${esc(s.title || s.url)}</span>`
-    ).join('');
-
-    resEl.innerHTML = `
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
-        <span class="prag-confidence ${tier}">Confianza: ${pct}%</span>
-        ${filterBadge}
-      </div>
-      <div class="prag-result markdown-rendered">${renderMarkdownToHtml(data.answer || '—')}</div>
-      ${sources ? `<div style="margin-top:8px">${sources}</div>` : ''}`;
-  } catch (e) {
-    if (resEl) resEl.innerHTML = `<div style="color:var(--danger);font-size:13px">Error: ${esc(e.message)}</div>`;
-  } finally {
-    if (btn) { btn.disabled = false; btn.textContent = t('paRagQueryBtn'); }
-  }
-}
-
-function pragStatsHtml(stats) {
-  if (!stats || stats.total_chunks === 0) {
-    return `<div class="prag-kv"><span>Total</span><strong>0 fragmentos</strong></div>
-      <p style="font-size:12px;color:var(--text2);margin-top:8px">Sin datos. Ejecuta la ingestión para poblar la base de conocimiento.</p>`;
-  }
-
-  const maxCount = (obj) => Math.max(1, ...Object.values(obj));
-
-  const barSection = (title, obj) => {
-    const max = maxCount(obj);
-    return `<div style="margin-bottom:14px">
-      <div style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">${title}</div>
-      ${Object.entries(obj).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`
-        <div class="prag-bar-row">
-          <span style="width:90px;flex-shrink:0;color:var(--text2)">${esc(k)}</span>
-          <div class="prag-bar"><div class="prag-bar-fill" style="width:${Math.round(v/max*100)}%"></div></div>
-          <span style="color:var(--text);font-weight:600;min-width:30px;text-align:right">${v}</span>
-        </div>`).join('')}
-    </div>`;
-  };
-
-  return `
-    <div class="prag-kv" style="margin-bottom:12px">
-      <span>Total fragmentos</span><strong>${stats.total_chunks}</strong>
-    </div>
-    <div class="prag-kv" style="margin-bottom:16px">
-      <span>Fuentes únicas</span><strong>${stats.unique_sources}</strong>
-    </div>
-    ${barSection(t('paRagByProduct'), stats.by_product || {})}
-    ${barSection(t('paRagByAction'),  stats.by_action  || {})}
-    ${barSection(t('paRagBySource'),  stats.by_source  || {})}`;
-}
 
 // ══════════════════════════════════════════════════════════════════════════
 //  MITRE ATT&CK Coverage Chatbot
 // ══════════════════════════════════════════════════════════════════════════
-
-// Known vendors for NLU extraction (longest-first for greedy matching)
-const KNOWN_VENDORS = [
-  'Palo Alto Networks','Check Point','Trend Micro','SentinelOne','CrowdStrike',
-  'Microsoft','Fortinet','Broadcom','Symantec','Trellix','Darktrace','Vectra',
-  'Tenable','Qualys','Rapid7','Elastic','Splunk','Cisco','McAfee','IBM',
-  'Google','Azure','AWS',
-].sort((a,b) => b.length - a.length);
-
-function extractVendorFromQuery(input) {
-  const lower = input.toLowerCase();
-  for (const v of KNOWN_VENDORS) {
-    if (lower.includes(v.toLowerCase())) return v;
-  }
-  // Fallback: first capitalised word sequence not in common query words
-  const stopWords = new Set(['How','Does','What','Show','Tell','About','The','ATT&CK',
-    'MITRE','Coverage','Techniques','Tactics','Security','Cyber','Threat','Vendor']);
-  const caps = input.match(/\b[A-Z][a-zA-Z0-9&]*(?:\s+[A-Z][a-zA-Z0-9&]*)*\b/g) || [];
-  for (const c of caps) { if (!stopWords.has(c)) return c; }
-  return null;
-}
 
 function mitreCvgBadge(level) {
   const map = { full:'cvg-full', partial:'cvg-partial', none:'cvg-none', unknown:'cvg-unknown' };
@@ -3504,7 +3108,7 @@ function renderMitreChat(el) {
       <h1>${t('mitreChatTitle')}</h1>
       <p>${t('mitreChatSubtitle')}</p>
     </div>
-    <div style="display:grid;grid-template-columns:220px 1fr 280px;gap:16px;align-items:start">
+    <div style="display:grid;grid-template-columns:220px 1fr 280px;gap:16px;align-items:start;padding-bottom:176px">
       <!-- History panel -->
       <div class="section" style="position:sticky;top:calc(var(--header-h) + 12px)">
         <div class="section-header" style="justify-content:space-between">
@@ -3554,12 +3158,28 @@ function renderMitreChat(el) {
           <p style="margin-top:12px;padding:10px;background:var(--bg2);border-radius:6px;font-size:12px">
             ${t('mitreChatLimit')}
           </p>
-          <div style="margin-top:14px">
-            <div style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px">Vendors soportados</div>
-            <div style="display:flex;flex-wrap:wrap;gap:4px">
-              ${KNOWN_VENDORS.map(v=>`<span class="tag" style="cursor:pointer;font-size:11px" onclick="document.getElementById('mitre-query-input').value='${v} ATT&CK coverage';document.getElementById('mitre-query-input').focus()">${v}</span>`).join('')}
-            </div>
-          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mitre-activity-dock" id="mitre-activity-dock">
+      <div class="mitre-activity-head">
+        <span class="mitre-activity-title">MITRE Chatbot Activity</span>
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+          <button class="mitre-filter-btn active" id="maf-all" onclick="setMitreActivityFilter('all')">Todo</button>
+          <button class="mitre-filter-btn f-action" id="maf-action" onclick="setMitreActivityFilter('action')">Accion</button>
+          <button class="mitre-filter-btn f-done" id="maf-done" onclick="setMitreActivityFilter('done')">Listo</button>
+          <button class="mitre-filter-btn f-warn" id="maf-warn" onclick="setMitreActivityFilter('warn')">Aviso</button>
+          <button class="mitre-filter-btn f-error" id="maf-error" onclick="setMitreActivityFilter('error')">Error</button>
+          <span style="width:1px;height:14px;background:var(--border);display:inline-block"></span>
+          <button class="btn btn-sm" style="font-size:11px;padding:2px 8px" onclick="exportMitreActivityLog()" title="Exportar log como .txt">⬇ TXT</button>
+          <button class="btn btn-sm" style="font-size:11px;padding:2px 8px" onclick="clearMitreActivityLog()">Limpiar</button>
+        </div>
+      </div>
+      <div class="mitre-activity-body" id="mitre-activity-body">
+        <div class="mitre-activity-row info">
+          <span class="mitre-activity-time">--:--:--</span>
+          <span class="mitre-activity-msg">Esperando una consulta...</span>
         </div>
       </div>
     </div>`;
@@ -3595,39 +3215,287 @@ async function checkMitreRagStatus() {
   }
 }
 
+let _mitreActivityFilter = 'all';
+
+function setMitreActivityFilter(kind) {
+  _mitreActivityFilter = kind;
+  ['all','action','done','warn','error'].forEach(k => {
+    const btn = document.getElementById(`maf-${k}`);
+    if (btn) btn.classList.toggle('active', k === kind);
+  });
+  const body = document.getElementById('mitre-activity-body');
+  if (!body) return;
+  Array.from(body.children).forEach(row => {
+    if (kind === 'all') { row.classList.remove('hidden'); }
+    else { row.classList.toggle('hidden', !row.classList.contains(kind)); }
+  });
+}
+
+function exportMitreActivityLog() {
+  const body = document.getElementById('mitre-activity-body');
+  if (!body) return;
+  const lines = Array.from(body.children).map(row => {
+    const time = row.querySelector('.mitre-activity-time')?.textContent ?? '';
+    const msg  = row.querySelector('.mitre-activity-msg')?.textContent ?? '';
+    const kind = [...row.classList].find(c => ['info','action','done','warn','error'].includes(c)) ?? '';
+    return `[${time}] [${kind.toUpperCase().padEnd(6)}] ${msg}`;
+  }).join('\n');
+  const blob = new Blob([lines], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `mitre-activity-${new Date().toISOString().slice(0,19).replace(/[T:]/g,'-')}.txt`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+}
+
+function pushMitreActivity(message, kind = 'info') {
+  const body = document.getElementById('mitre-activity-body');
+  if (!body) return;
+
+  const row = document.createElement('div');
+  const hidden = _mitreActivityFilter !== 'all' && _mitreActivityFilter !== kind ? ' hidden' : '';
+  row.className = `mitre-activity-row ${kind}${hidden}`;
+
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2, '0');
+  const mm = String(now.getMinutes()).padStart(2, '0');
+  const ss = String(now.getSeconds()).padStart(2, '0');
+
+  row.innerHTML = `
+    <span class="mitre-activity-time">${hh}:${mm}:${ss}</span>
+    <span class="mitre-activity-msg">${esc(String(message || ''))}</span>`;
+
+  body.appendChild(row);
+
+  while (body.children.length > 80) {
+    body.removeChild(body.firstChild);
+  }
+
+  body.scrollTop = body.scrollHeight;
+}
+
+function clearMitreActivityLog() {
+  const body = document.getElementById('mitre-activity-body');
+  if (!body) return;
+  body.innerHTML = '';
+  pushMitreActivity('Log limpiado.', 'info');
+}
+
 async function submitMitreQuery() {
   const input = document.getElementById('mitre-query-input');
   const query = input.value.trim();
   if (!query) { showMitreClarify(t('mitreChatEnterVendor')); return; }
 
-  const vendor = extractVendorFromQuery(query);
-  if (!vendor) { showMitreClarify(t('mitreChatClarify')); return; }
-
   hideMitreClarify();
   input.value = '';
   document.getElementById('btn-mitre-ask').disabled = true;
+  pushMitreActivity(`Consulta recibida: ${query}`, 'action');
 
   // Append user bubble
-  appendChatBubble('user', `<strong>${esc(vendor)}</strong> — ${esc(query)}`);
+  appendChatBubble('user', esc(query));
 
   // Thinking bubble (will be replaced)
   const thinkId = 'mitre-think-' + Date.now();
   appendChatBubble('agent thinking', `<span id="${thinkId}">${t('mitreChatThinking')}</span>`);
 
   try {
-    const body = { vendor, query };
-    if (state.mitreConversationId) body.conversationId = state.mitreConversationId;
-    const { jobId } = await api('/api/mitre/coverage', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    });
-    await streamMitreCoverageSSE(jobId, thinkId);
+    const report = await runMitreReactAnalysis(
+      query,
+      state.mitreConversationId,
+      step => {
+        const stepText = String(step?.content || '').trim();
+        if (!stepText) return;
+        pushMitreActivity(stepText, step?.type === 'action' ? 'action' : 'info');
+        const span = document.getElementById(thinkId);
+        if (span) {
+          span.textContent = stepText.length > 160 ? stepText.slice(0, 160) + '…' : stepText;
+        }
+      },
+    );
+
+    if (report?.conversationId) {
+      state.mitreConversationId = report.conversationId;
+    }
+
+    replaceThinkBubble(thinkId, 'agent', renderCoverageReport(report));
+    pushMitreActivity('Analisis completado correctamente.', 'done');
+    loadMitreConversations();
   } catch (e) {
-    replaceThinkBubble(thinkId, 'insufficient', tr('mitreChatError', { message: e.message }));
+    const msg = String(e?.message || e || '');
+    const isMissingAnalysisRoute = /Cannot POST \/api\/mitre\/analysis/i.test(msg);
+
+    if (isMissingAnalysisRoute) {
+      try {
+        const data = await queryMitreLocalRag(query, 8);
+        const resultId = `mitre-local-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+        state.mitreLocalResults[resultId] = {
+          query,
+          result: data,
+        };
+
+        const html = `<div class="coverage-report">
+          <div class="coverage-summary" style="margin-bottom:8px">${esc(`${data.resultCount} result(s) from ${data.totalEntries} indexed entries`)}</div>
+          <div class="markdown-rendered" style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;max-height:720px;overflow-y:auto">${renderMarkdownToHtml(data.formattedContext || '—')}</div>
+          <div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center;gap:8px">
+            <span style="font-size:11px;color:var(--warn)">Modo compatibilidad (sin ReAct web)</span>
+            <button id="mitre-save-btn-${resultId}" class="btn btn-sm" onclick="saveMitreLocalResult('${resultId}')">${t('mitreChatSaveToDb')}</button>
+          </div>
+        </div>`;
+        replaceThinkBubble(thinkId, 'agent', html);
+        pushMitreActivity('Fallback activado: respuesta local RAG sin enriquecimiento web.', 'warn');
+      } catch (fallbackErr) {
+        replaceThinkBubble(thinkId, 'insufficient', tr('mitreChatError', { message: fallbackErr.message }));
+        pushMitreActivity(`Error en fallback: ${fallbackErr.message}`, 'error');
+      }
+    } else {
+      replaceThinkBubble(thinkId, 'insufficient', tr('mitreChatError', { message: e.message }));
+      pushMitreActivity(`Error: ${e.message || String(e)}`, 'error');
+    }
   }
 
   document.getElementById('btn-mitre-ask').disabled = false;
+}
+
+async function runMitreReactAnalysis(query, conversationId, onStep) {
+  pushMitreActivity('Iniciando trabajo ReAct MITRE (fase RAG-first)...', 'action');
+  const started = await api('/api/mitre/analysis', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query, topic: query, conversationId }),
+  });
+
+  const jobId = started?.jobId;
+  if (!jobId) throw new Error('No se pudo iniciar el analisis MITRE');
+  pushMitreActivity(`Job creado: ${jobId}`, 'info');
+
+  return await new Promise((resolve, reject) => {
+    let settled = false;
+    const settleResolve = value => {
+      if (settled) return;
+      settled = true;
+      resolve(value);
+    };
+    const settleReject = err => {
+      if (settled) return;
+      settled = true;
+      reject(err instanceof Error ? err : new Error(String(err)));
+    };
+
+    const es = openEventSource(`/api/mitre/analysis/${jobId}/progress`);
+
+    es.addEventListener('step', e => {
+      try { onStep?.(JSON.parse(e.data)); } catch { /* ignore malformed step */ }
+    });
+
+    es.addEventListener('done', e => {
+      es.close();
+      try {
+        pushMitreActivity('Job finalizado: reporte listo.', 'done');
+        settleResolve(JSON.parse(e.data));
+      } catch {
+        settleReject(new Error('Respuesta final invalida del analisis MITRE'));
+      }
+    });
+
+    es.addEventListener('error', e => {
+      es.close();
+      try {
+        const payload = JSON.parse(e.data);
+        pushMitreActivity(`Job error: ${payload.error || 'Error en analisis MITRE'}`, 'error');
+        settleReject(new Error(payload.error || 'Error en analisis MITRE'));
+      } catch {
+        pushMitreActivity('Job error: Error en analisis MITRE', 'error');
+        settleReject(new Error('Error en analisis MITRE'));
+      }
+    });
+
+    es.onerror = () => {
+      if (settled || es.readyState === EventSource.CLOSED) return;
+      es.close();
+      pushMitreActivity('Conexion SSE perdida durante el analisis.', 'error');
+      settleReject(new Error('Conexion perdida durante el analisis MITRE'));
+    };
+  });
+}
+
+async function queryMitreLocalRag(query, topK = 8) {
+  const payload = {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query, topK }),
+  };
+
+  try {
+    return await api('/api/mitre/query-local', payload);
+  } catch (err) {
+    const msg = String(err?.message || err || '');
+    const isMissingLocalRoute = /Cannot POST \/api\/mitre\/query-local/i.test(msg);
+    if (isMissingLocalRoute) {
+      try {
+        return await api('/api/mitre/query', payload);
+      } catch {
+        throw new Error('Backend desactualizado. Reinicia el servidor con: npm run server');
+      }
+    }
+    throw err;
+  }
+}
+
+async function saveMitreLocalResult(resultId) {
+  const saved = state.mitreLocalResults[resultId];
+  if (!saved) {
+    toast(t('mitreChatSaveError').replace('{message}', 'resultado no encontrado'), 'error');
+    return;
+  }
+
+  const btn = document.getElementById(`mitre-save-btn-${resultId}`);
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = t('mitreChatSaving');
+  }
+
+  try {
+    const payload = {
+      query: saved.query,
+      result: {
+        entries: saved.result.entries,
+        totalEntries: saved.result.totalEntries,
+        formattedContext: saved.result.formattedContext,
+      },
+      conversationId: state.mitreConversationId,
+    };
+
+    const persisted = await api('/api/mitre/query-local/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    if (persisted?.conversationId) {
+      state.mitreConversationId = persisted.conversationId;
+    }
+
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = t('mitreChatSaved');
+    }
+
+    const savedTag = document.getElementById('mitre-saved-tag');
+    if (savedTag) {
+      savedTag.style.display = 'inline-flex';
+      setTimeout(() => { savedTag.style.display = 'none'; }, 2500);
+    }
+
+    toast(t('mitreChatSavedToDb'), 'success');
+    delete state.mitreLocalResults[resultId];
+    loadMitreConversations();
+  } catch (e) {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = t('mitreChatSaveToDb');
+    }
+    toast(tr('mitreChatSaveError', { message: e.message || String(e) }), 'error');
+  }
 }
 
 function appendChatBubble(classes, html) {
@@ -3648,62 +3516,6 @@ function replaceThinkBubble(thinkId, classes, html) {
   if (!bubble) return;
   bubble.className = 'chat-bubble ' + classes;
   bubble.innerHTML = html;
-}
-
-function streamMitreCoverageSSE(jobId, thinkId) {
-  return new Promise((resolve) => {
-    const steps = [];
-    const es = openEventSource(`/api/mitre/coverage/${jobId}/progress`);
-
-    es.addEventListener('conversation', e => {
-      try {
-        const { conversationId } = JSON.parse(e.data);
-        if (conversationId) {
-          state.mitreConversationId = conversationId;
-        }
-      } catch { /* ignore */ }
-    });
-
-    es.addEventListener('step', e => {
-      const step = JSON.parse(e.data);
-      steps.push(step);
-      const span = document.getElementById(thinkId);
-      if (span) {
-        const icons = { action:'⚡', observation:'👁', thought:'💭', answer:'✅' };
-        span.innerHTML = `<div class="step-feed-mitre">${
-          steps.slice(-3).map(s =>
-            `<div class="step-item-mitre">
-              <span class="step-type-mitre">${(icons[s.type]||'•')} ${s.type.toUpperCase()}</span>
-              <span>${esc(s.content.slice(0, 100))}</span>
-            </div>`
-          ).join('')
-        }</div>`;
-      }
-    });
-
-    es.addEventListener('done', e => {
-      es.close();
-      const data = JSON.parse(e.data);
-      if (data.conversationId) {
-        state.mitreConversationId = data.conversationId;
-        const tag = document.getElementById('mitre-saved-tag');
-        if (tag) { tag.style.display = 'inline-flex'; setTimeout(() => { tag.style.display = 'none'; }, 3000); }
-        loadMitreConversations();
-      }
-      replaceThinkBubble(thinkId, 'agent', renderCoverageReport(data));
-      resolve();
-    });
-
-    es.addEventListener('error', e => {
-      es.close();
-      let msg = 'Unknown error';
-      try { msg = JSON.parse(e.data).error || msg; } catch {}
-      replaceThinkBubble(thinkId, 'insufficient', tr('mitreChatError', { message: msg }));
-      resolve();
-    });
-
-    es.onerror = () => { es.close(); resolve(); };
-  });
 }
 
 function renderCoverageReport(report) {

@@ -16,13 +16,9 @@
     "mitre:ingest": "node --experimental-sqlite node_modules/ts-node/dist/bin.js --project tsconfig.json src/index.ts mitre:ingest",
     "mitre:query":  "node --experimental-sqlite node_modules/ts-node/dist/bin.js --project tsconfig.json src/index.ts mitre:query",
     "mitre:reset":  "node --experimental-sqlite node_modules/ts-node/dist/bin.js --project tsconfig.json src/index.ts mitre:reset",
-    "mitre:vendor":   "node --experimental-sqlite node_modules/ts-node/dist/bin.js --project tsconfig.json src/index.ts mitre:vendor",
+    "mitre:analysis": "node --experimental-sqlite node_modules/ts-node/dist/bin.js --project tsconfig.json src/index.ts mitre:analysis",
     "mitre:diagnose": "node --experimental-sqlite node_modules/ts-node/dist/bin.js --project tsconfig.json src/index.ts mitre:diagnose",
-    "mitre:probe":    "node --experimental-sqlite node_modules/ts-node/dist/bin.js --project tsconfig.json src/index.ts mitre:probe-embeddings",
-    "paloalto:start":  "python src/paloalto-rag/main.py",
-    "paloalto:install": "python -m pip install -r src/paloalto-rag/requirements.txt",
-    "paloalto:ingest":  "python src/paloalto-rag/ingest_cli.py",
-    "paloalto:reset":   "python src/paloalto-rag/ingest_cli.py --reset --no-defaults"
+    "mitre:probe":    "node --experimental-sqlite node_modules/ts-node/dist/bin.js --project tsconfig.json src/index.ts mitre:probe-embeddings"
   },
   "dependencies": {
     "@types/express": "^5.0.6",

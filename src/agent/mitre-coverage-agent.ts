@@ -1,21 +1,14 @@
 /**
- * MITRE ATT&CK Vendor Coverage Agent
+ * MITRE ATT&CK Intelligence Agent
  *
- * A specialised ReAct agent whose sole task is to analyse how a given vendor's
- * products address (or fail to address) MITRE ATT&CK techniques.
+ * Query-driven ReAct agent for deep ATT&CK analysis using:
+ *  1) local MITRE RAG grounding,
+ *  2) web search,
+ *  3) targeted page scraping.
  *
- * Differences from the ranking ReActAgent:
- *  - Max 3 ReAct iterations (hardcoded per spec, overridable via env).
- *  - Always calls query_mitre_attack first to ground the analysis in the local
- *    knowledge base before touching the web.
- *  - Returns a MitreCoverageReport instead of a VendorAnalysis.
- *  - If no conclusive JSON is produced after exhausting iterations, the report
- *    carries insufficientInfo: true and a plain-English message.
- *
- * Tool priority (matches spec):
- *  1. query_mitre_attack  — local RAG, zero latency, verified ATT&CK data
- *  2. search_web          — official vendor docs, security advisories
- *  3. scrape_url          — deep-read a specific page when needed
+ * The agent no longer assumes vendor-centric analysis. It answers broad threat
+ * intelligence questions (techniques, tactics, detections, mitigations, groups,
+ * software, campaigns) and returns a MitreCoverageReport-shaped JSON payload.
  */
 
 import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
@@ -23,54 +16,64 @@ import { LLMClient } from './llm-client';
 import { SearchTool, SEARCH_TOOL_DEFINITION } from './tools/search';
 import { ScrapeTool, SCRAPE_TOOL_DEFINITION } from './tools/scrape';
 import { MitreRagTool, MITRE_TOOL_DEFINITION } from './tools/mitre';
-import { PaloAltoRagTool, PALOALTO_RAG_TOOL_DEFINITION } from './tools/paloalto-rag';
 import { AgentConfig } from '../types';
 import { MitreCoverageReport, TtpCoverage } from '../types/mitre-coverage';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const MAX_ITERATIONS = parseInt(process.env.MITRE_COVERAGE_MAX_ITERATIONS ?? '3', 10);
+const MAX_ITERATIONS = parseInt(process.env.MITRE_COVERAGE_MAX_ITERATIONS ?? '8', 10);
+const MIN_RAG_PHASE_ITERATIONS = parseInt(process.env.MITRE_RAG_PHASE_ITERATIONS ?? '2', 10);
+const MIN_RAG_CALLS_BEFORE_WEB = parseInt(process.env.MITRE_RAG_MIN_CALLS ?? '3', 10);
+const ANALYSIS_SCOPE = 'MITRE Threat Intelligence';
 
 const TOOLS = [
   MITRE_TOOL_DEFINITION,
-  PALOALTO_RAG_TOOL_DEFINITION,
   SEARCH_TOOL_DEFINITION,
   SCRAPE_TOOL_DEFINITION,
 ];
 
 // ─── System prompt ────────────────────────────────────────────────────────────
 
-function buildSystemPrompt(vendorName: string): string {
-  return `You are a leading cybersecurity analyst specialising in threat intelligence and MITRE ATT&CK framework analysis. Your task is to produce a detailed, evidence-based report on how ${vendorName}'s products address specific ATT&CK Tactics, Techniques, and Procedures (TTPs).
+function buildSystemPrompt(userQuery: string): string {
+  return `You are an elite cybersecurity threat intelligence analyst specialised in MITRE ATT&CK.
+
+Your objective is to produce a high-fidelity, evidence-based ATT&CK analysis for this user query:
+"${userQuery}"
+
+Think like a senior incident responder + detection engineer + CTI lead. Use all available tool power and maximize analytical quality.
 
 ## Tools available
-- query_mitre_attack(query)  — ALWAYS call this first. Searches the local MITRE ATT&CK knowledge base and returns verified technique data. Use it to identify which techniques are relevant to ${vendorName} and its security domain.
-- search_web(query)          — Search for ${vendorName} official documentation, security advisories, and technical whitepapers. Prioritise official sources (${vendorName}.com, docs.${vendorName.toLowerCase().replace(/\s+/g, '')}.com, security blogs from the vendor).
-- scrape_url(url)            — Read a specific page in full when a search result looks highly relevant.
+- query_mitre_attack(query)  — ALWAYS call this first. Ground the analysis using local ATT&CK data.
+- search_web(query)          — Expand with current threat intel, official guidance, and high-quality technical sources.
+- scrape_url(url)            — Deep-read the strongest sources for precise evidence.
 
 ## Research strategy (follow in order)
-1. Call query_mitre_attack to retrieve ATT&CK techniques relevant to ${vendorName}'s security domain (e.g. "endpoint detection", "network security", "identity protection").
-2. Call search_web to find ${vendorName} official documentation describing how specific products counter those techniques.
-3. Call scrape_url on the most relevant official pages to extract precise product names, feature descriptions, and configuration details.
+1. PHASE 1 (RAG-FIRST, mandatory): run multiple query_mitre_attack calls with different focused sub-queries (core techniques, detections, mitigations, platform specifics).
+2. Build a short internal synthesis from RAG findings: what is known, what is uncertain, and what gaps remain.
+3. PHASE 2 (WEB ENRICHMENT): only after RAG synthesis, use search_web with targeted queries for unresolved gaps.
+4. Use scrape_url on top sources to capture concrete evidence and remove ambiguity.
+5. Synthesize findings into technically actionable ATT&CK coverage conclusions.
 
 ## Strict rules
-1. EVIDENCE FIRST — every TTP entry must cite at least one real source URL you actually accessed.
-2. DATA SOURCE PRIORITY — official vendor documentation > security advisories > analyst reports > secondary blogs.
-3. NO HALLUCINATION — if you cannot find evidence for a technique, omit it or mark coverageLevel "unknown". Never invent product names or feature descriptions.
-4. ATT&CK IDs — always use the exact MITRE ATT&CK ID (e.g. T1566, T1078.003). Never fabricate IDs.
-5. MAX ITERATIONS — you have at most ${MAX_ITERATIONS} tool-call rounds. If you still lack enough evidence after ${MAX_ITERATIONS} rounds, set insufficientInfo to true and explain why in the summary.
+1. EVIDENCE FIRST — every TTP entry must include at least one URL actually consulted.
+2. SOURCE QUALITY — prioritise: MITRE ATT&CK > CISA/ENISA/NCSC > vendor advisories > respected CTI research.
+3. NO HALLUCINATION — if evidence is weak, use coverageLevel "unknown".
+4. ATT&CK INTEGRITY — use exact ATT&CK IDs only.
+5. BE COMPREHENSIVE — prefer fewer high-confidence claims over broad low-quality claims.
+6. MAX ITERATIONS — you have up to ${MAX_ITERATIONS} rounds of tool use; use them to improve quality.
+7. PHASE GATING — do NOT call search_web or scrape_url until you have completed several query_mitre_attack calls and RAG synthesis.
 
 ## Coverage level definitions
-- "full"    — vendor has a dedicated product feature or control that directly detects/prevents the technique.
-- "partial" — vendor provides some capability but it requires additional configuration or third-party integration.
-- "none"    — vendor explicitly does not address this technique, or it is outside their product scope.
-- "unknown" — insufficient public documentation found.
+- "full"    — strong, direct and explicit detection/prevention/mitigation evidence.
+- "partial" — some evidence exists but is incomplete, indirect, or context-dependent.
+- "none"    — explicit evidence of non-coverage or clear mismatch with scope.
+- "unknown" — insufficient reliable evidence.
 
 ## Output format
 Respond with ONLY the raw JSON object below — no markdown fences, no preamble.
 
 {
-  "vendor": "${vendorName}",
+  "vendor": "${ANALYSIS_SCOPE}",
   "analysisDate": "<ISO 8601 date>",
   "ttpsAddressed": [
     {
@@ -78,14 +81,14 @@ Respond with ONLY the raw JSON object below — no markdown fences, no preamble.
       "techniqueName": "Phishing",
       "tactics": ["initial-access"],
       "coverageLevel": "full|partial|none|unknown",
-      "products": ["Product Name — specific feature"],
-      "description": "One paragraph explaining how ${vendorName} addresses this technique with specific product evidence.",
+      "products": ["Detection/mitigation control or analytic approach"],
+      "description": "One concise paragraph linking ATT&CK context to practical detection/mitigation insight.",
       "evidenceUrls": ["https://exact-url-you-accessed.com/page"]
     }
   ],
   "coverageGaps": ["T1xxx — Technique Name: brief reason for gap"],
   "overallCoverageScore": 0-10,
-  "summary": "2–3 sentences summarising ${vendorName}'s overall ATT&CK coverage, strengths, and key gaps.",
+  "summary": "3-5 sentences with key findings, confidence caveats, and actionable next steps.",
   "sourcesConsulted": ["https://every-url-accessed.com"],
   "insufficientInfo": false
 }`;
@@ -93,38 +96,30 @@ Respond with ONLY the raw JSON object below — no markdown fences, no preamble.
 
 // ─── MitreCoverageAgent ───────────────────────────────────────────────────────
 
-/** Returns true if the vendor name refers to Palo Alto Networks. */
-function isPaloAlto(vendorName: string): boolean {
-  const n = vendorName.toLowerCase();
-  return n.includes('palo alto') || n.includes('paloalto') || n === 'pan' || n === 'panw';
-}
-
 export class MitreCoverageAgent {
   private readonly llm:       LLMClient;
   private readonly search:    SearchTool;
   private readonly scrape:    ScrapeTool;
   private readonly mitre:     MitreRagTool;
-  private readonly paloalto:  PaloAltoRagTool;
 
   constructor(config: AgentConfig) {
     this.llm      = new LLMClient(config);
     this.search   = new SearchTool();
     this.scrape   = new ScrapeTool();
     this.mitre    = new MitreRagTool();
-    this.paloalto = new PaloAltoRagTool();
   }
 
   /**
-   * Run the coverage analysis for a vendor.
-   *
-   * @param vendorName  The vendor to analyse (e.g. "Microsoft", "Palo Alto Networks").
-   * @param onStep      Optional callback for real-time progress in the CLI.
+   * Run MITRE ATT&CK analysis for a free-form intelligence query.
    */
-  async analyseVendor(
-    vendorName: string,
+  async analyseCoverage(
+    queryText: string,
     onStep?: (type: string, content: string) => void,
   ): Promise<MitreCoverageReport> {
-    const startTime = Date.now();
+    const effectiveQuery = queryText.trim();
+    if (!effectiveQuery) {
+      return insufficientReport('Empty query. Provide a MITRE-focused question or topic.');
+    }
 
     // ── Step 0: Pre-inject RAG context ────────────────────────────────────────
     // Always query the RAG upfront and embed the results in the first user
@@ -133,7 +128,7 @@ export class MitreCoverageAgent {
     onStep?.('thought', 'Pre-loading MITRE ATT&CK context from local knowledge base…');
     let ragPreamble = '';
     try {
-      const preQuery = `${vendorName} security techniques detection endpoint network identity`;
+      const preQuery = `${effectiveQuery} ATT&CK technique detection mitigation telemetry`;
       const ragResult = await this.mitre.run(preQuery, 8);
       if (ragResult && !ragResult.startsWith('MITRE ATT&CK query failed') && !ragResult.startsWith('[MITRE')) {
         ragPreamble = `\n\n## Pre-loaded MITRE ATT&CK Context\n${ragResult}`;
@@ -145,56 +140,34 @@ export class MitreCoverageAgent {
       // Non-fatal — continue without pre-loaded context
     }
 
-    // ── Step 0b: Palo Alto-specific pre-injection ─────────────────────────────
-    // When analysing Palo Alto Networks, also query the dedicated PA RAG so
-    // the model receives product-specific evidence with confidence scores.
-    if (isPaloAlto(vendorName)) {
-      onStep?.('thought', 'Palo Alto Networks detected — pre-loading product-specific RAG…');
-      try {
-        const paAvailable = await this.paloalto.ping();
-        if (paAvailable) {
-          const paResult = await this.paloalto.run(
-            'Palo Alto Networks Cortex XDR Prisma Strata MITRE ATT&CK detection prevention coverage',
-            6,
-          );
-          if (paResult && !paResult.includes('[PaloAlto RAG] No relevant') && !paResult.includes('[PaloAlto RAG] Service not running')) {
-            ragPreamble += `\n\n## Pre-loaded Palo Alto Networks Documentation\n${paResult}`;
-            onStep?.('observation', `PA RAG pre-load: ${paResult.slice(0, 200)}`);
-          }
-        } else {
-          onStep?.('observation', 'PA RAG service not running — using generic ATT&CK context only. Start with: npm run paloalto:start');
-        }
-      } catch {
-        // Non-fatal
-      }
-    }
-
     const messages: ChatCompletionMessageParam[] = [
-      { role: 'system', content: buildSystemPrompt(vendorName) },
+      { role: 'system', content: buildSystemPrompt(effectiveQuery) },
       {
         role: 'user',
         content:
-          `Analyse how ${vendorName} addresses MITRE ATT&CK techniques.` +
+          `Analyse this MITRE ATT&CK intelligence query in depth: "${effectiveQuery}".` +
           ragPreamble +
-          `\n\nNow call query_mitre_attack to find additional relevant techniques for ${vendorName}'s ` +
-          `security domain, then use search_web to find evidence in official ${vendorName} documentation. ` +
+          `\n\nUse all tools strategically: first query_mitre_attack, then multiple focused search_web calls, ` +
+          `and scrape_url for top sources. ` +
           `Produce the JSON report described in the system prompt.`,
       },
     ];
 
     let finalJson: string | null = null;
     let iteration = 0;
-    let mitreQueried = false;
+    let mitreCallCount = 0;
+    let webCallCount = 0;
+    let scrapeCallCount = 0;
     let enforcedMitreRetry = false;
+    let ragPhaseTransitionInjected = false;
 
     // ── ReAct loop (max MAX_ITERATIONS) ──────────────────────────────────────
     while (iteration < MAX_ITERATIONS) {
       iteration++;
       onStep?.('thought', `Iteration ${iteration}/${MAX_ITERATIONS}`);
 
-      // Force query_mitre_attack on the first iteration so the model cannot
-      // skip it. After that switch to auto so it can choose freely.
-      const forceTool = iteration === 1 ? 'query_mitre_attack' : undefined;
+      // Hard-gate phase 1: the first iterations are RAG-only.
+      const forceTool = iteration <= MIN_RAG_PHASE_ITERATIONS ? 'query_mitre_attack' : undefined;
       const { toolCalls, text } = await this.llm.chatWithTools(messages, TOOLS, forceTool);
 
       // ── Model called tools ────────────────────────────────────────────────
@@ -212,33 +185,40 @@ export class MitreCoverageAgent {
             const query = args.query ?? '';
             onStep?.('action', `query_mitre_attack("${query}")`);
             result = await this.mitre.run(query, args.top_k ? parseInt(args.top_k, 10) : undefined);
-            mitreQueried = true;
-            onStep?.('observation', result.slice(0, 600));
-
-          } else if (fn === 'query_paloalto_rag') {
-            const query = args.query ?? '';
-            onStep?.('action', `query_paloalto_rag("${query}")`);
-            result = await this.paloalto.run(
-              query,
-              args.top_k       ? parseInt(args.top_k, 10) : undefined,
-              args.product_line ?? undefined,
-              args.action_type  ?? undefined,
-            );
+            mitreCallCount++;
             onStep?.('observation', result.slice(0, 600));
 
           } else if (fn === 'search_web') {
+            if (mitreCallCount < MIN_RAG_CALLS_BEFORE_WEB) {
+              result =
+                `search_web deferred: complete RAG-first phase first ` +
+                `(${mitreCallCount}/${MIN_RAG_CALLS_BEFORE_WEB} query_mitre_attack calls).`;
+              onStep?.('observation', result);
+              messages.push({ role: 'tool', tool_call_id: call.id, content: result });
+              continue;
+            }
             const query = args.query ?? '';
             onStep?.('action', `search_web("${query}")`);
-            const hits = await this.search.search(query, 8);
+            const hits = await this.search.search(query, 10);
             result = hits.length > 0
               ? hits.map((r, i) => `[${i + 1}] ${r.title}\n    URL: ${r.url}\n    ${r.snippet}`).join('\n\n')
               : `No results for: "${query}"`;
+            webCallCount++;
             onStep?.('observation', result.slice(0, 600));
 
           } else if (fn === 'scrape_url') {
+            if (mitreCallCount < MIN_RAG_CALLS_BEFORE_WEB) {
+              result =
+                `scrape_url deferred: complete RAG-first phase first ` +
+                `(${mitreCallCount}/${MIN_RAG_CALLS_BEFORE_WEB} query_mitre_attack calls).`;
+              onStep?.('observation', result);
+              messages.push({ role: 'tool', tool_call_id: call.id, content: result });
+              continue;
+            }
             const url = args.url ?? '';
             onStep?.('action', `scrape_url("${url}")`);
             result = await this.scrape.run(url);
+            scrapeCallCount++;
             onStep?.('observation', result.slice(0, 600));
 
           } else {
@@ -251,16 +231,32 @@ export class MitreCoverageAgent {
         // Some backends only support string tool_choice values and may ignore
         // function-name forcing. If MITRE wasn't called in the first round,
         // add a strict corrective turn and do not consume an iteration budget.
-        if (iteration === 1 && !mitreQueried && !enforcedMitreRetry) {
+        if (iteration === 1 && mitreCallCount === 0 && !enforcedMitreRetry) {
           enforcedMitreRetry = true;
           iteration--;
           onStep?.('thought', 'MITRE tool was skipped; enforcing query_mitre_attack before continuing.');
           messages.push({
             role: 'user',
             content:
-              'Before any other tool, call query_mitre_attack now with a focused query for this vendor ' +
-              '(for example: vendor name + endpoint/network/identity ATT&CK coverage). ' +
+              'Before any other tool, call query_mitre_attack now with a focused query for this analysis topic ' +
+              '(for example: the user query + ATT&CK techniques/detections/mitigations). ' +
               'Do not return final JSON yet.',
+          });
+        }
+
+        // Inject an explicit transition from RAG grounding to web enrichment.
+        if (
+          !ragPhaseTransitionInjected &&
+          mitreCallCount >= MIN_RAG_CALLS_BEFORE_WEB &&
+          webCallCount === 0 &&
+          scrapeCallCount === 0
+        ) {
+          ragPhaseTransitionInjected = true;
+          messages.push({
+            role: 'user',
+            content:
+              'RAG phase complete. Now do a brief synthesis of ATT&CK findings and identify top evidence gaps. ' +
+              'Then call search_web and scrape_url only for those unresolved gaps, and finally return full JSON.',
           });
         }
 
@@ -304,8 +300,9 @@ export class MitreCoverageAgent {
       }
     }
 
-    return parseReport(finalJson, vendorName);
+    return parseReport(finalJson);
   }
+
 }
 
 // ─── JSON helpers ─────────────────────────────────────────────────────────────
@@ -324,9 +321,9 @@ function extractJson(raw: string): string | null {
   return null;
 }
 
-function parseReport(jsonStr: string | null, vendorName: string): MitreCoverageReport {
+function parseReport(jsonStr: string | null): MitreCoverageReport {
   if (!jsonStr) {
-    return insufficientReport(vendorName, 'Agent produced no parseable JSON response.');
+    return insufficientReport('Agent produced no parseable JSON response.');
   }
 
   let data: any = {};
@@ -354,7 +351,6 @@ function parseReport(jsonStr: string | null, vendorName: string): MitreCoverageR
 
   if (data.insufficientInfo === true && ttps.length === 0) {
     return insufficientReport(
-      vendorName,
       typeof data.summary === 'string' && data.summary
         ? data.summary
         : 'Insufficient Information – Unable to provide a complete response.',
@@ -362,7 +358,7 @@ function parseReport(jsonStr: string | null, vendorName: string): MitreCoverageR
   }
 
   return {
-    vendor:               String(data.vendor ?? vendorName),
+    vendor:               ANALYSIS_SCOPE,
     analysisDate:         String(data.analysisDate ?? new Date().toISOString()),
     ttpsAddressed:        ttps,
     coverageGaps:         Array.isArray(data.coverageGaps)      ? data.coverageGaps      : [],
@@ -375,9 +371,9 @@ function parseReport(jsonStr: string | null, vendorName: string): MitreCoverageR
   };
 }
 
-function insufficientReport(vendorName: string, reason: string): MitreCoverageReport {
+function insufficientReport(reason: string): MitreCoverageReport {
   return {
-    vendor:               vendorName,
+    vendor:               ANALYSIS_SCOPE,
     analysisDate:         new Date().toISOString(),
     ttpsAddressed:        [],
     coverageGaps:         [],

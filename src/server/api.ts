@@ -22,6 +22,7 @@ import { agentConfig } from '../config';
 import { ReActAgent } from '../agent/react-agent';
 import { LLMClient } from '../agent/llm-client';
 import { MitreCoverageAgent } from '../agent/mitre-coverage-agent';
+import { MitreRag } from '../mitre/rag';
 import { MitreVectorStore } from '../mitre/vector-store';
 import { ReActStep, VendorAnalysis } from '../types';
 import { MitreCoverageReport } from '../types/mitre-coverage';
@@ -36,11 +37,11 @@ import {
   getMessages,
   saveCoverageReport,
   listReports,
-  listVendorStats,
-  getVendorReports,
-  deleteVendorReports,
-  getMergedVendorReport,
-  saveMergedVendorSelection,
+  listVendorStats as listTopicStats,
+  getVendorReports as getTopicReports,
+  deleteVendorReports as deleteTopicReports,
+  getMergedVendorReport as getMergedTopicReport,
+  saveMergedVendorSelection as saveMergedTopicSelection,
 } from '../database/chat-db';
 
 // ─── DB Init ──────────────────────────────────────────────────────────────────
@@ -70,7 +71,7 @@ const jobs = new Map<string, AnalysisJob>();
 interface MitreCoverageJob {
   id: string;
   status: 'pending' | 'running' | 'done' | 'error' | 'insufficient';
-  vendor: string;
+  topic: string;
   steps: Array<{ type: string; content: string; timestamp: string }>;
   result?: MitreCoverageReport;
   error?: string;
@@ -456,24 +457,189 @@ app.get('/api/mitre/status', (_req: Request, res: Response) => {
   }
 });
 
-// ─── API: MITRE ATT&CK Coverage Chatbot ──────────────────────────────────────
+// ─── API: MITRE Local RAG Query ──────────────────────────────────────────────
 
-app.post('/api/mitre/coverage', (req: Request, res: Response) => {
-  const { vendor, query, conversationId: rawConvId } = req.body as {
-    vendor: string;
+async function mitreLocalQueryHandler(req: Request, res: Response): Promise<void> {
+  const { query, topK } = req.body as { query?: string; topK?: number };
+  const q = String(query ?? '').trim();
+  if (!q) {
+    res.status(400).json({ error: 'query is required' });
+    return;
+  }
+
+  const parsedTopK = Number.isFinite(Number(topK)) ? Number(topK) : 8;
+  const safeTopK = Math.max(1, Math.min(10, parsedTopK));
+
+  try {
+    const rag = new MitreRag();
+    await rag.init();
+    const result = await rag.query(q, safeTopK);
+    res.json({
+      query: q,
+      topK: safeTopK,
+      totalEntries: result.totalEntries,
+      resultCount: result.entries.length,
+      formattedContext: result.formattedContext,
+      entries: result.entries,
+    });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    res.status(500).json({ error: msg });
+  }
+}
+
+app.post('/api/mitre/query-local', (req: Request, res: Response) => {
+  void mitreLocalQueryHandler(req, res);
+});
+
+// Backward/alt compatibility alias
+app.post('/api/mitre/query', (req: Request, res: Response) => {
+  void mitreLocalQueryHandler(req, res);
+});
+
+app.post('/api/mitre/query-local/save', (req: Request, res: Response) => {
+  const { query, result, conversationId: rawConvId } = req.body as {
+    query?: string;
+    result?: {
+      entries?: Array<{
+        score?: number;
+        entry?: {
+          id?: string;
+          name?: string;
+          type?: string;
+          tactics?: string[];
+          description?: string;
+          url?: string;
+          references?: Array<{ url?: string }>;
+        };
+      }>;
+      totalEntries?: number;
+      formattedContext?: string;
+    };
+    conversationId?: number;
+  };
+
+  const q = String(query ?? '').trim();
+  const entries = Array.isArray(result?.entries) ? result.entries : [];
+
+  if (!q) {
+    res.status(400).json({ error: 'query is required' });
+    return;
+  }
+  if (!entries.length) {
+    res.status(400).json({ error: 'result.entries is required' });
+    return;
+  }
+
+  try {
+    const topicLabel = 'MITRE Local RAG';
+    const scoreValues = entries
+      .map(e => Number(e?.score))
+      .filter(v => Number.isFinite(v));
+    const avgSimilarity = scoreValues.length
+      ? scoreValues.reduce((acc, v) => acc + v, 0) / scoreValues.length
+      : 0;
+    const overallScore = Math.max(0, Math.min(10, Number((avgSimilarity * 10).toFixed(1))));
+
+    const ttpsAddressed = entries.map(e => {
+      const entry = e?.entry ?? {};
+      const rawScore = Number(e?.score);
+      const similarity = Number.isFinite(rawScore) ? rawScore : 0;
+      let coverageLevel: 'full' | 'partial' | 'none' | 'unknown' = 'unknown';
+      if (similarity >= 0.85) coverageLevel = 'full';
+      else if (similarity >= 0.7) coverageLevel = 'partial';
+      else if (similarity >= 0.5) coverageLevel = 'none';
+
+      const refUrls = Array.isArray(entry.references)
+        ? entry.references
+          .map(r => String(r?.url ?? '').trim())
+          .filter(Boolean)
+        : [];
+
+      return {
+        techniqueId: String(entry.id ?? 'N/A'),
+        techniqueName: String(entry.name ?? 'MITRE entry'),
+        tactics: Array.isArray(entry.tactics) ? entry.tactics : [],
+        coverageLevel,
+        products: [
+          `Local RAG match (${(similarity * 100).toFixed(1)}% similarity)`,
+        ],
+        description: String(entry.description ?? '').slice(0, 1200),
+        evidenceUrls: [String(entry.url ?? '').trim(), ...refUrls].filter(Boolean),
+      };
+    });
+
+    const sourcesConsulted = Array.from(new Set(
+      entries.flatMap(e => {
+        const entry = e?.entry ?? {};
+        const refs = Array.isArray(entry.references)
+          ? entry.references.map(r => String(r?.url ?? '').trim()).filter(Boolean)
+          : [];
+        return [String(entry.url ?? '').trim(), ...refs].filter(Boolean);
+      }),
+    ));
+
+    const report: MitreCoverageReport = {
+      vendor: topicLabel,
+      analysisDate: new Date().toISOString(),
+      ttpsAddressed,
+      coverageGaps: [],
+      overallCoverageScore: overallScore,
+      summary:
+        `Resultado guardado para consulta local RAG: "${q}". ` +
+        `${entries.length} coincidencias sobre ${Number(result?.totalEntries) || 0} entradas indexadas.`,
+      sourcesConsulted,
+      insufficientInfo: false,
+    };
+
+    let convId: number;
+    if (rawConvId) {
+      const existing = getConversation(rawConvId);
+      convId = existing ? rawConvId : createConversation(topicLabel);
+    } else {
+      convId = createConversation(topicLabel);
+    }
+
+    addMessage(convId, 'user', q, topicLabel);
+    const agentText = result?.formattedContext?.trim() || report.summary;
+    const msgId = addMessage(convId, 'agent', agentText, topicLabel);
+    const reportId = saveCoverageReport(msgId, convId, report);
+
+    renameConversation(convId, `${topicLabel} — ${new Date().toLocaleDateString()}`);
+
+    res.json({
+      ok: true,
+      conversationId: convId,
+      messageId: msgId,
+      reportId,
+      topic: topicLabel,
+    });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    res.status(500).json({ error: msg });
+  }
+});
+
+// ─── API: MITRE ATT&CK Query Analysis Chatbot ───────────────────────────────
+
+app.post('/api/mitre/analysis', (req: Request, res: Response) => {
+  const { topic, query, conversationId: rawConvId } = req.body as {
+    topic?: string;
     query?: string;
     conversationId?: number;
   };
-  if (!vendor || !vendor.trim()) {
-    res.status(400).json({ error: 'vendor is required' });
+  const analysisQuery = String(query ?? '').trim();
+  if (!analysisQuery) {
+    res.status(400).json({ error: 'query is required' });
     return;
   }
+  const safeTopic = String(topic ?? '').trim() || analysisQuery.slice(0, 80);
 
   const jobId = `mitre-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
   const job: MitreCoverageJob = {
     id: jobId,
     status: 'pending',
-    vendor: vendor.trim(),
+    topic: safeTopic,
     steps: [],
     startedAt: new Date().toISOString(),
     sseClients: [],
@@ -482,20 +648,19 @@ app.post('/api/mitre/coverage', (req: Request, res: Response) => {
 
   void (async () => {
     job.status = 'running';
-    broadcastMitreSSE(job, 'status', { status: 'running', vendor: job.vendor });
+    broadcastMitreSSE(job, 'status', { status: 'running', topic: job.topic });
 
     // Resolve or create conversation
     let convId: number;
     try {
       if (rawConvId) {
         const existing = getConversation(rawConvId);
-        convId = existing ? rawConvId : createConversation(job.vendor);
+        convId = existing ? rawConvId : createConversation(job.topic);
       } else {
-        convId = createConversation(job.vendor);
+        convId = createConversation(job.topic);
       }
       // Save user message
-      const userText = query?.trim() || `${job.vendor} MITRE ATT&CK coverage`;
-      addMessage(convId, 'user', userText, job.vendor);
+      addMessage(convId, 'user', analysisQuery, job.topic);
       broadcastMitreSSE(job, 'conversation', { conversationId: convId });
     } catch {
       // DB errors are non-fatal
@@ -504,7 +669,7 @@ app.post('/api/mitre/coverage', (req: Request, res: Response) => {
 
     try {
       const agent = new MitreCoverageAgent(agentConfig);
-      const report = await agent.analyseVendor(job.vendor, (type, content) => {
+      const report = await agent.analyseCoverage(analysisQuery, (type, content) => {
         const step = { type, content, timestamp: new Date().toISOString() };
         job.steps.push(step);
         broadcastMitreSSE(job, 'step', step);
@@ -517,11 +682,10 @@ app.post('/api/mitre/coverage', (req: Request, res: Response) => {
       // Persist agent reply and coverage report
       if (convId > 0) {
         try {
-          const agentText = report.summary || `Coverage analysis for ${job.vendor}`;
-          const msgId = addMessage(convId, 'agent', agentText, job.vendor);
+          const agentText = report.summary || `MITRE analysis for: ${job.topic}`;
+          const msgId = addMessage(convId, 'agent', agentText, job.topic);
           saveCoverageReport(msgId, convId, report);
-          // Auto-title conversation on first analysis
-          renameConversation(convId, `${job.vendor} — ${new Date().toLocaleDateString()}`);
+          renameConversation(convId, `${job.topic} — ${new Date().toLocaleDateString()}`);
         } catch { /* non-fatal */ }
       }
 
@@ -537,10 +701,10 @@ app.post('/api/mitre/coverage', (req: Request, res: Response) => {
     }
   })();
 
-  res.json({ jobId, vendor: job.vendor });
+  res.json({ jobId, topic: job.topic });
 });
 
-app.get('/api/mitre/coverage/:jobId/progress', (req: Request, res: Response) => {
+app.get('/api/mitre/analysis/:jobId/progress', (req: Request, res: Response) => {
   const job = mitreJobs.get(String(req.params.jobId));
   if (!job) { res.status(404).json({ error: 'Job not found' }); return; }
 
@@ -564,7 +728,7 @@ app.get('/api/mitre/coverage/:jobId/progress', (req: Request, res: Response) => 
   req.on('close', () => { job.sseClients = job.sseClients.filter(c => c !== res); });
 });
 
-app.get('/api/mitre/coverage/:jobId', (req: Request, res: Response) => {
+app.get('/api/mitre/analysis/:jobId', (req: Request, res: Response) => {
   const job = mitreJobs.get(String(req.params.jobId));
   if (!job) { res.status(404).json({ error: 'Job not found' }); return; }
   const { sseClients: _c, ...safe } = job;
@@ -619,30 +783,31 @@ app.get('/api/mitre/reports', (req: Request, res: Response) => {
   res.json(listReports(Number.isFinite(limit) ? limit : 50));
 });
 
-// ─── API: MITRE Coverage — vendor aggregates ─────────────────────────────────
+// ─── API: MITRE Coverage — topic aggregates ─────────────────────────────────
 
-// Summary stats for every vendor that has at least one valid analysis
-app.get('/api/mitre/vendor-stats', (_req: Request, res: Response) => {
-  res.json(listVendorStats());
+// Summary stats for every topic label with at least one valid analysis
+app.get('/api/mitre/topic-stats', (_req: Request, res: Response) => {
+  const rows = listTopicStats();
+  res.json(rows.map(r => ({ ...r, topic: r.vendor })));
 });
 
-// All stored reports for one vendor (newest first)
-app.get('/api/mitre/vendor-stats/:vendor/reports', (req: Request, res: Response) => {
-  const vendor = decodeURIComponent(String(req.params.vendor));
-  res.json(getVendorReports(vendor));
+// All stored reports for one topic (newest first)
+app.get('/api/mitre/topic-stats/:topic/reports', (req: Request, res: Response) => {
+  const topic = decodeURIComponent(String(req.params.topic));
+  res.json(getTopicReports(topic));
 });
 
-// Merged/accumulated report for one vendor
-app.get('/api/mitre/vendor-stats/:vendor/merged', (req: Request, res: Response) => {
-  const vendor = decodeURIComponent(String(req.params.vendor));
-  const merged = getMergedVendorReport(vendor);
-  if (!merged) { res.status(404).json({ error: 'No valid analyses found for this vendor' }); return; }
+// Merged/accumulated report for one topic
+app.get('/api/mitre/topic-stats/:topic/merged', (req: Request, res: Response) => {
+  const topic = decodeURIComponent(String(req.params.topic));
+  const merged = getMergedTopicReport(topic);
+  if (!merged) { res.status(404).json({ error: 'No valid analyses found for this topic' }); return; }
   res.json(merged);
 });
 
 // Persist a merged report from a user-selected subset of runs
-app.post('/api/mitre/vendor-stats/:vendor/merge-selection', (req: Request, res: Response) => {
-  const vendor = decodeURIComponent(String(req.params.vendor));
+app.post('/api/mitre/topic-stats/:topic/merge-selection', (req: Request, res: Response) => {
+  const topic = decodeURIComponent(String(req.params.topic));
   const reportIds = Array.isArray(req.body?.reportIds)
     ? req.body.reportIds
       .map((x: unknown) => Number(x))
@@ -654,9 +819,9 @@ app.post('/api/mitre/vendor-stats/:vendor/merge-selection', (req: Request, res: 
     return;
   }
 
-  const saved = saveMergedVendorSelection(vendor, reportIds);
+  const saved = saveMergedTopicSelection(topic, reportIds);
   if (!saved) {
-    res.status(404).json({ error: 'Unable to merge selected reports for this vendor' });
+    res.status(404).json({ error: 'Unable to merge selected reports for this topic' });
     return;
   }
 
@@ -669,41 +834,12 @@ app.post('/api/mitre/vendor-stats/:vendor/merge-selection', (req: Request, res: 
   });
 });
 
-// Delete all analyses for one vendor
-app.delete('/api/mitre/vendor-stats/:vendor', (req: Request, res: Response) => {
-  const vendor = decodeURIComponent(String(req.params.vendor));
-  const deleted = deleteVendorReports(vendor);
+// Delete all analyses for one topic
+app.delete('/api/mitre/topic-stats/:topic', (req: Request, res: Response) => {
+  const topic = decodeURIComponent(String(req.params.topic));
+  const deleted = deleteTopicReports(topic);
   res.json({ ok: true, deleted });
 });
-
-// ─── API: Palo Alto Networks RAG (proxy to Python service) ───────────────────
-
-const PA_RAG_URL = (process.env.PALOALTO_RAG_URL ?? 'http://localhost:8765').replace(/\/$/, '');
-
-async function paRagProxy(req: Request, res: Response, path: string, method = 'GET', body?: unknown): Promise<void> {
-  try {
-    const r = await axios({ method, url: `${PA_RAG_URL}${path}`, data: body, timeout: 60_000 });
-    res.json(r.data);
-  } catch (err: unknown) {
-    if (axios.isAxiosError(err) && err.response) {
-      res.status(err.response.status).json(err.response.data);
-    } else {
-      const msg = err instanceof Error ? err.message : String(err);
-      const isDown = msg.includes('ECONNREFUSED') || msg.includes('ECONNRESET');
-      res.status(503).json({
-        error: isDown
-          ? 'Palo Alto RAG service is not running. Start it with: npm run paloalto:start'
-          : msg,
-      });
-    }
-  }
-}
-
-app.get('/api/paloalto-rag/health',       (req, res) => paRagProxy(req, res, '/health'));
-app.get('/api/paloalto-rag/stats',        (req, res) => paRagProxy(req, res, '/stats'));
-app.post('/api/paloalto-rag/query',       (req, res) => paRagProxy(req, res, '/query',  'POST', req.body));
-app.post('/api/paloalto-rag/ingest',      (req, res) => paRagProxy(req, res, '/ingest', 'POST', req.body));
-app.delete('/api/paloalto-rag/reset',     (req, res) => paRagProxy(req, res, '/reset',  'DELETE'));
 
 // ─── SPA Fallback ─────────────────────────────────────────────────────────────
 

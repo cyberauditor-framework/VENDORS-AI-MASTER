@@ -64,15 +64,34 @@ Variables:
 - `LM_STUDIO_URL`: endpoint OpenAI-compatible de LM Studio. Default: `http://localhost:1234/v1`
 - `LM_STUDIO_API_KEY`: clave API (LM Studio acepta `lm-studio` por defecto).
 - `LM_STUDIO_MODEL`: modelo cargado en LM Studio.
+- `EMBEDDING_MODEL`: modelo de embeddings (recomendado separado del modelo generativo).
 - `AGENT_TEMPERATURE`: temperatura del modelo.
 - `AGENT_MAX_TOKENS`: maximo de tokens por respuesta.
 - `AGENT_MAX_REACT_ITERATIONS`: iteraciones maximas del bucle ReAct.
 - `AGENT_MAX_SEARCH_RESULTS`: resultados maximos por llamada de busqueda.
+- `MITRE_COVERAGE_MAX_ITERATIONS`: iteraciones maximas del agente MITRE query-driven.
+- `MITRE_RAG_PHASE_ITERATIONS`: iteraciones iniciales forzadas en fase RAG (sin web).
+- `MITRE_RAG_MIN_CALLS`: llamadas minimas a `query_mitre_attack` antes de habilitar busqueda web.
+- `MITRE_SIMILARITY_THRESHOLD`: umbral de similitud para recuperar contexto MITRE en RAG.
 - `SEARCH_RATE_LIMIT_MS`: espera entre busquedas para evitar rate-limit.
 - `SEARCH_REQUEST_TIMEOUT_MS`: timeout de busqueda web.
 - `WEB_SCRAPE_TIMEOUT_MS`: timeout de scraping.
 - `DB_PATH`: ruta de la SQLite (default `./data/vendors.db`).
 - `EXPORT_DIR`: carpeta de reportes (default `./reports`).
+
+Perfil recomendado (calidad alta MITRE):
+
+```env
+EMBEDDING_MODEL=text-embedding-nomic-embed-text-v1.5
+MITRE_COVERAGE_MAX_ITERATIONS=8
+MITRE_RAG_PHASE_ITERATIONS=2
+MITRE_RAG_MIN_CALLS=3
+MITRE_SIMILARITY_THRESHOLD=0.20
+```
+
+Notas:
+- Sube `MITRE_COVERAGE_MAX_ITERATIONS` a `10` si priorizas profundidad frente a latencia.
+- Si hay muy pocos resultados del RAG, baja `MITRE_SIMILARITY_THRESHOLD` a `0.15`.
 
 ## 6. Ejecucion
 
